@@ -1,3 +1,4 @@
+// Payload to be passed in: Cucumber 4.0 for Java JSON test results
 const { Webhooks } = require('@qasymphony/pulse-sdk');
 
 exports.handler = function ({ event: body, constants, triggers }, context, callback) {
@@ -5,8 +6,6 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         let t = triggers.find(t => t.name === name);
         return t && new Webhooks().invoke(t, payload);
     }
-
-        // Payload to be passed in: json style cucumber 4.x for java test results
 
         var payload = body;
         var testResults = payload.result; 
