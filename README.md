@@ -5,6 +5,10 @@
 
 Repository of open-source Pulse rules powered by the community.
 
+## How It Works
+
+<p align="center"><img width="90%" src="https://d1f5pmhur9pirz.cloudfront.net/wp-content/uploads/2018/12/pulse-flow.png"></p>
+
 ## Getting Started
 
 Please review the [Pulse documentation](https://support.qasymphony.com/hc/en-us/categories/115000683986-qTest-Pulse) for examples of how to set up a workflow and use Constants.
