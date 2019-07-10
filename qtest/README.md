@@ -1,8 +1,8 @@
-### UpdateQTestWithFormattedResults.js
+### UpdateQTestWithResults.js
 This uses the auto-test-logs endpoint to bulk upload test cases, test runs, and test logs to qTest Manager. It also attempts to tie requirements to test case if the names match.
 
-### scenarioColors.js
-This sets the color coding in scenario for pass/fail at the start of the script. 
+### UpdateScenarioWithResults.js
+This sets the color coding in Scenario for pass/fail at the start of the script. 
 
 ### CreateTestCase.js
 This is action code to create a test case in qTest in the default API Creation qTest Test Design Module called 'Created via API'. The expected payload is the standard Jira webhook payload. This rule is used in conjunction with LinkRequirement.js and is intended to be used when a Jira Issue is created or modified to meet certain criteria (such as a status called Ready To Develop or something triggering wanting a default test case).
