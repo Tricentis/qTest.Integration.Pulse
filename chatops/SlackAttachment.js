@@ -4,8 +4,8 @@ const xml2js = require('xml2js');
 
 // This is to attach large payloads to a Slack file attachment to bypass 
 // the Slack message character limitation as well as the Pulse console.log
-// length limitation.  Requires constant "SlackToken" to be created.  See
-// https://api.slack.com/custom-integrations/legacy-tokens for details.
+// length limitation.  Requires constant "SlackToken" and "SlackChannelID" 
+// to be created.  https://api.slack.com/custom-integrations/legacy-tokens
 
 exports.handler = function({ event: body, constants, triggers }, context, callback) {
     function emitEvent(name, payload) {
@@ -27,7 +27,7 @@ exports.handler = function({ event: body, constants, triggers }, context, callba
             title: 'payload.json',
             filename: 'payload.json',
             filetype: 'javascript',
-            channels: 'GFT63D059',
+            channels: constants.SlackChannelID,
             content: JSON.stringify(payload)
         },
     }
