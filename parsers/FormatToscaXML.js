@@ -14,6 +14,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         var projectId = payload.projectId;
         var cycleId = payload["test-cycle"];
         var testLogs = [];
+        var testSteps = [];
         var requiresDecode = payload.requiresDecode;
 
         if(requiresDecode == 'true') {
@@ -34,7 +35,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
             explicitChildren: false
         }, function (err, result) {
             if (err) {
-                emitEvent('<INSERT NAME OF CHATOPS INTEGRATION RULE HERE>', { Error: "Unexpected Error Parsing XML Document: " + err }); 
+                emitEvent('SlackEvent', { Error: "Unexpected Error Parsing XML Document: " + err }); 
                 console.log(err);
             } else {
                 var testsuites = Array.isArray(result.testsuites['testsuite']) ? result.testsuites['testsuite'] : [result.testsuites['testsuite']];
@@ -70,15 +71,53 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                         endTime = new Date(Date.parse(startTime)).setSeconds(interim);
                         endTime = new Date(endTime).toISOString();
 
+                        stepArray = testcase.$.log.split('\r\n');
+                        var stepOrder = 1;
+
+                        stepArray.forEach(function(step) {
+                            var testStep = '';
+                            if(step.trim() == '') {
+                                console.log('Blank line, skipping');
+                            }
+                            if(step.startsWith('+ Passed')) {
+                                console.log('Step is a pass');
+                                testStep = {
+                                    description: step.replace('+ Passed', '').trim(),
+                                    expected_result: step.replace('+ Passed', '').trim(),
+                                    actual_result: step.replace('+ Passed', '').trim(),
+                                    order: stepOrder,
+                                    status: "PASSED"
+                                };
+                                testSteps.push(testStep);
+                                stepOrder ++;
+                            }
+                            else if(step.startsWith('- Failed')) {
+                                console.log('Step is a failure');
+                                testStep = {
+                                    description: step.replace('- Failed', '').trim(),
+                                    expected_result: step.replace('- Failed', '').trim(),
+                                    actual_result: step.replace('- Failed', '').trim(),
+                                    order: stepOrder,
+                                    status: "FAILED"
+                                };
+                                testSteps.push(testStep);
+                                stepOrder ++;
+                            }
+                            else {
+                                console.log('Step is part of last step, appending');
+                                testSteps[testSteps.length - 1].description = testSteps[testSteps.length - 1].description.concat('\n', step.trim());
+                                testSteps[testSteps.length - 1].expected_result = testSteps[testSteps.length - 1].expected_result.concat('\n', step.trim());
+                                testSteps[testSteps.length - 1].actual_result = testSteps[testSteps.length - 1].actual_result.concat('\n', step.trim());
+                            }
+                        })
+
                         var note = '';
                         var stack = '';
                         var testFailure = Array.isArray(testcase.failure) ? testcase.failure : [testcase.failure];
                         testFailure.forEach(function(failure) {
                             if(failure !== undefined) {
-                                console.log(failure.$.type)
-                                note = failure.$.type + ': ' + failure.$.message;
-                                console.log(failure._)
-                                stack = failure._;
+                                note = failure.$.message;
+                                stack = failure.$.message;
                                 classStatus = 'failed';
                             }
                         });
@@ -88,6 +127,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                             status: classStatus,
                             name: className,
                             attachments: [],
+                            test_step_logs: testSteps,
                             note: note,
                             exe_start_date: startTime,
                             exe_end_date: endTime,
@@ -115,8 +155,8 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
             "logs" : testLogs
         };
 
-        emitEvent('<INSERT NAME OF CHATOPS INTEGRATION RULE HERE>', { ResultsFormatSuccess: "Results formatted successfully for project"}); 
-        emitEvent('<INSERT NAME OF UPDATE QTEST RULE HERE>', formattedResults );
+        emitEvent('SlackEvent', { ResultsFormatSuccess: "Results formatted successfully for project"}); 
+        emitEvent('UpdateQTestWithFormattedResults', formattedResults );
 
 };
 
