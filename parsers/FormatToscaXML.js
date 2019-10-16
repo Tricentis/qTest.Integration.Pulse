@@ -46,17 +46,8 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                     var testcases = Array.isArray(testsuite.testcase) ? testsuite.testcase : [testsuite.testcase];
                     testcases.forEach(function(testcase) {
                         var classArray = [];
-                        classArray = testcase.$.name.replace('=>', ':').split(':');
-                        var depth = classArray.length;
-                        var className = classArray[(depth - 1)];
+                        var className = testcase.$.name;
                         var moduleNames = [];
-                        var moduleCount = 0;
-                        classArray.forEach(function(folder) {
-                            if(moduleCount < (depth - 1)) {
-                                moduleNames.push(folder.trim());
-                                moduleCount++;
-                            }
-                        })
                         if(moduleNames.length == 0) {
                             moduleNames.push(suiteName);
                         }
@@ -73,6 +64,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
 
                         stepArray = testcase.$.log.split('\r\n');
                         var stepOrder = 1;
+                        testSteps = [];
 
                         stepArray.forEach(function(step) {
                             var testStep = '';
@@ -144,7 +136,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                         //testLog.attachments.push(payload.consoleOutput[0]);
                         testLogs.push(testLog);
                         lastEndTime = endTime;
-                    });
+                    }); // end
                 });
             }
         });
@@ -155,7 +147,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
             "logs" : testLogs
         };
 
-        emitEvent('SlackEvent', { ResultsFormatSuccess: "Results formatted successfully for project"}); 
+        emitEvent('SlackEvent', { message: "Results formatted successfully for Tosca"}); 
         emitEvent('UpdateQTestWithFormattedResults', formattedResults );
 
 };
