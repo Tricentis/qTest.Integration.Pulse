@@ -13,6 +13,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         var testResults = payload.result; 
         var projectId = payload.projectId;
         var cycleId = payload["test-cycle"];
+        var moduleName = payload.moduleName;
         var testLogs = [];
         var testSteps = [];
         var requiresDecode = payload.requiresDecode;
@@ -41,17 +42,16 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                 var testsuites = Array.isArray(result.testsuites['testsuite']) ? result.testsuites['testsuite'] : [result.testsuites['testsuite']];
                 testsuites.forEach(function(testsuite) {
                     lastEndTime = 0;
-                    suiteName = testsuite.$.name;
+                    var suiteName = testsuite.$.name;
                     console.log('Suite Name: ' + suiteName)
                     var testcases = Array.isArray(testsuite.testcase) ? testsuite.testcase : [testsuite.testcase];
                     testcases.forEach(function(testcase) {
                         var classArray = [];
-                        var className = testcase.$.name;
-                        var moduleNames = [];
-                        if(moduleNames.length == 0) {
-                            moduleNames.push(suiteName);
-                        }
+                        className = testcase.$.name;
                         console.log('Class Name: ' + className)
+                        var moduleNames = [
+                            moduleName
+                        ];
                         var classStatus = 'passed';
                         if(lastEndTime == 0) {
                             startTime = new Date(Date.parse(testsuite.$.timestamp)).toISOString();
@@ -146,8 +146,9 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
             "test-cycle" : cycleId,
             "logs" : testLogs
         };
-
-        emitEvent('SlackEvent', { message: "Results formatted successfully for Tosca"}); 
+        // uncomment following if using ChatOps integrations
+        // emitEvent('ChatopsEvent', { message: "Results formatted successfully for Tosca Execution List: " + moduleName});
+        console.log('Results formatted successfully for Tosca Execution Lost: ' + moduleName);
         emitEvent('UpdateQTestWithFormattedResults', formattedResults );
 
 };
