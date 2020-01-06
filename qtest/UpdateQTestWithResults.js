@@ -18,7 +18,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
     var payload = body;
 
     var testLogs = payload.logs;
-    var cycleId = payload["test-cycle"];
+    var cycleId = payload.testcycle;
     var projectId = payload.projectId;
     var requiresDecode = payload.requiresDecode;
 
@@ -51,13 +51,13 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                 Promise.reject(err);
             }
             else {
-                emitEvent('<INSERT NAME OF CHATOPS INTEGRATION RULE HERE>', { AutomationLogUploaded: resbody });
+                emitEvent('ChatOpsEvent', { message: resbody });
 
                 if (response.body.type == "AUTOMATION_TEST_LOG") {
                     Promise.resolve("Uploaded results successfully");
                 }
                 else {
-                    emitEvent('<INSERT NAME OF CHATOPS INTEGRATION RULE HERE>', { Error: "Wrong type" });
+                    emitEvent('ChatOpsEvent', { message: "Wrong type" });
                     Promise.reject("Unable to upload test results");
                 }
             }
@@ -70,6 +70,6 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
             emitEvent('<INSERT NAME OF LINK SCENARIO REQUIREMENTS RULE HERE>', payload);
         })
         .on('error', function (err) {
-            emitEvent('<INSERT NAME OF CHATOPS INTEGRATION RULE HERE>', { CaughtError: err });
+            emitEvent('ChatOpsEvent', { message: err });
         })
 }

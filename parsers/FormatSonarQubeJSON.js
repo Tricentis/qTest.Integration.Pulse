@@ -12,7 +12,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         var payload = body;
         var testResults = payload.result; 
         var projectId = payload.projectId;
-        var cycleId = payload["test-cycle"];
+        var cycleId = payload.testcycle;
         var requiresDecode = payload.requiresDecode;
 
         if(requiresDecode == 'true') {
@@ -81,10 +81,9 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
 
         var formattedResults = {
             "projectId" : projectId,
-            "test-cycle" : cycleId,
+            "testcycle": cycleId,
             "logs" : testLogs
         };
 
-        emitEvent('<INSERT NAME OF CHATOPS INTEGRATION RULE HERE>', { ResultsFormatSuccess: "Results formatted successfully for project " + constants.JenkinsJobName }); 
         emitEvent('<INSERT NAME OF UPDATEQTEST/SCENARIO RULE HERE>', formattedResults );
 }

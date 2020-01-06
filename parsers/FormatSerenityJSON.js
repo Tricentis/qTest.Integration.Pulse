@@ -199,7 +199,7 @@ const flatMap = (f, xs) => xs.map(f).reduce(concat, []);
  function processPayload(payload) {
   //const { projectId, requiresDecode, foldername } = payload;  
   const { projectId, requiresDecode } = payload;
-  const cycleId = payload["test-cycle"];
+  const cycleId = payload.testcycle;
 
   let testResults = payload.result;
 
@@ -220,7 +220,7 @@ const flatMap = (f, xs) => xs.map(f).reduce(concat, []);
 
   return {
     projectId,
-    "test-cycle": cycleId,
+    "testcycle": cycleId,
     logs: testLogs
   };
 }

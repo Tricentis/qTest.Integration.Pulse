@@ -1,3 +1,16 @@
+/**
+ * call source: Repository (Bitbucket, Github, Gitlab, etc), Scenario Action
+ * payload example: N/A, trigger only
+ * constants:
+ *  JenkinsUserName: admin
+ *  JenkinsAPIToken: fa96ad2f-5e1c-4562-a14d-98a94ba9bab1
+ *  JenkinsURL: jenkins.yourdomain.com:8080
+ *  JenkinsJobName: CucumberBuildJob
+ *  JenkinsJobToken: fa96ad2f-5e1c-4562-a14d-98a94ba9bab1
+ * outputs:
+ *  The specified build job will be triggered in Jenkins
+ */
+
 const request = require('request');
 const { Webhooks } = require('@qasymphony/pulse-sdk');
 
@@ -24,17 +37,18 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                         "Jenkins-Crumb": crumb
                     }
                 };
+
                 request.post(opts, function(err, res, bd) {
                     if(!err) {
-                        emitEvent('<INSERT NAME OF CHATOPS INTEGRATION RULE HERE>', { JenkinsCallSuccess: "Jenkins Build just kicked off for project " + constants.JenkinsJobName });
+                        emitEvent('ChatOpsEvent', { message: "Jenkins Build just kicked off for project: " + constants.JenkinsJobName });
                     }
                     else {
-                        emitEvent('<INSERT NAME OF CHATOPS INTEGRATION RULE HERE>', { JenkinsCallFailure: "Jenkins Build kickoff failed for project " + constants.JenkinsJobName + " & Error:" + err });
+                        emitEvent('ChatOpsEvent', { message: "Jenkins Build kickoff failed for project: " + constants.JenkinsJobName + " & Error: " + err });
                     }
                 });
             }
             else {
-                emitEvent('<INSERT NAME OF CHATOPS INTEGRATION RULE HERE>', { JenkinsCallFailure: "Jenkins Build kickoff failed for project " + constants.JenkinsJobName + " & Error:" + err  }); 
+                emitEvent('ChatOpsEvent', { message: "Jenkins Build kickoff failed for project: " + constants.JenkinsJobName + " & Error: " + err  }); 
             }
         });
 }

@@ -1,3 +1,16 @@
+/**
+ * call source: Repository (Bitbucket, Github, Gitlab, etc), Scenario Action
+ * payload example: N/A, trigger only
+ * constants:
+ *  TeamCityUserName: admin
+ *  TeamCityPassword: password
+ *  TeamCityURL: teamcity.yourdomain.com
+ *  TeamCityPort: 8111
+ *  TeamCityBuildCode: fa96ad2f
+ * outputs:
+ *  The specified build job will be triggered in Team City
+ */
+
 const request = require('request');
 const { Webhooks } = require('@qasymphony/pulse-sdk');
 
@@ -20,12 +33,9 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
     };
 
     console.log(headers)
+    console.log(constants.TeamCityBuildCode)
 
-    var buildCode = constants.TeamCityBuildCode
-
-    console.log(buildCode)
-
-    var dataString = '<build><buildType id="' + buildCode + '"/></build>';
+    var dataString = '<build><buildType id="' + constants.TeamCityBuildCode + '"/></build>';
 
     console.log(dataString)
 
@@ -38,10 +48,10 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
 
     request.post(opts, function(err, res, bd) {
             if(!err) {
-                emitEvent('<INSERT NAME OF CHATOPS INTEGRATION RULE HERE>', { TeamCityTriggerSuccess: "TeamCity Build just kicked off for: " + buildCode });
+                emitEvent('ChatOpsEvent', { message: "TeamCity Build just kicked off for: " + constants.TeamCityBuildCode });
             }
             else {
-                emitEvent('<INSERT NAME OF CHATOPS INTEGRATION RULE HERE>', { TeamCityProject: "Unexpected Error Triggering TeamCity Build: " + buildCode});
+                emitEvent('ChatOpsEvent', { message: "TeamCity Build failed to kick off for: " + constants.TeamCityBuildCode });
             }
     });
 

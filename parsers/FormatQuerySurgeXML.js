@@ -14,7 +14,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         var payload = body;
         var testResults = payload.result; 
         var projectId = payload.projectId;
-        var cycleId = payload["test-cycle"];
+        var cycleId = payload.testcycle;
         var testLogs = [];
         var timestamp = new Date();
         var requiresDecode = payload.requiresDecode;
@@ -30,7 +30,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
             explicitChildren: false
         }, function (err, result) {
             if (err) {
-                emitEvent('<INSERT NAME OF CHATOPS INTEGRATION RULE HERE>', { Error: "Unexpected Error Parsing XML Document: " + err }); 
+                emitEvent('ChatOpsEvent', { Error: "Unexpected Error Parsing XML Document: " + err }); 
             } else {
                 var moduleName = result['scenario']['scenarioName'];                
                 var testsuites = Array.isArray(result['scenario'].suiteList.suite) ? result['scenario'].suiteList.suite : [result['scenario'].suiteList.suite];
@@ -92,10 +92,9 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
 
         var formattedResults = {
             "projectId" : projectId,
-            "test-cycle" : cycleId,
+            "testcycle": cycleId,
             "logs" : testLogs
         };
 
-        emitEvent('<INSERT NAME OF CHATOPS INTEGRATION RULE HERE>', { ResultsFormatSuccess: "Results formatted successfully for project NYL QuerySurge."}); 
         emitEvent('<INSERT NAME OF UPDATE QTEST RULE HERE>', formattedResults );
 }

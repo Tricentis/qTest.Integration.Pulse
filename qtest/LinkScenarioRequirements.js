@@ -52,7 +52,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         request.post(reqopts, function (err, response, featureResBody) {
 
             if (err) {
-                emitEvent('<INSERT NAME OF CHATOPS INTEGRATION RULE HERE>', { Error: "Problem getting requirement: " + err });
+                emitEvent('ChatOpsEvent', { message: "Problem getting requirement: " + err });
             }
             else {
                 if (featureResBody.items.length === 0) { // No corresponding feature exists in scenario
@@ -66,7 +66,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                 request.post(tcopts, function (tcerr, tcresponse, testCaseResBody) {
 
                     if (tcerr) {
-                        emitEvent('SlackEvent', { Error: "Problem getting test case: " + err });
+                        emitEvent('ChatOpsEvent', { message: "Problem getting test case: " + err });
                     }
                     else {
                         if(testCaseResBody.items.length === 0) { // Test Case Doesn't yet exist - we'll try this another time
@@ -80,12 +80,12 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                         request.post(linkopts, function (optserr, optsresponse, resbody) {
                             if (optserr) {
                                 console.log('[Error] A link is failed to be added.', optserr)
-                                emitEvent('<INSERT NAME OF CHATOPS INTEGRATION RULE HERE>', { Error: "Problem creating test link to requirement: " + err });
+                                emitEvent('ChatOpsEvent', { message: "Problem creating test link to requirement: " + err });
                             }
                             else {
                                 // Success, we added a link!
                                 console.log('[Info] A link is added')
-                                emitEvent('<INSERT NAME OF CHATOPS INTEGRATION RULE HERE>', { Linking: "link added for TC: " + testcase.name + " to requirement " + matchingFeature.issueKey });
+                                emitEvent('ChatOpsEvent', { message: "link added for TC: " + testcase.name + " to requirement " + matchingFeature.issueKey });
                             }
                         });
                     }

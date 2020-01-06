@@ -24,7 +24,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
   request.post(reqopts, function (err, response, reqResBody) {
 
       if (err) {
-          emitEvent('SlackEvent', { Error: "Problem getting requirement: " + err });
+          emitEvent('ChatOpsEvent', { Error: "Problem getting requirement: " + err });
       }
       else {
           if (reqResBody.items.length === 0)
@@ -35,11 +35,11 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
 
             request.post(linkopts, function (optserr, optsresponse, resbody) {
                 if (optserr) {
-                    emitEvent('SlackEvent', { Error: "Problem creating test link to requirement: " + err });
+                    emitEvent('ChatOpsEvent', { message: "Problem creating test link to requirement: " + err });
                 }
                 else {
                     // Success, we added a link!
-                    emitEvent('SlackEvent', { Linking: "link added for TC: " + body.tcid + " to requirement " + body.issueKey });
+                    emitEvent('ChatOpsEvent', { message: "link added for TC: " + body.tcid + " to requirement " + body.issueKey });
                 }
             });
       }

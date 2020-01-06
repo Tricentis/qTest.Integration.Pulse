@@ -31,7 +31,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
             explicitChildren: false
         }, function (err, result) {
             if (err) {
-                emitEvent('SlackEvent', { message: "Unexpected Error Parsing XML Document: " + err }); 
+                emitEvent('ChatOpsEvent', { message: "Unexpected Error Parsing XML Document: " + err }); 
             } else {
                 var testruns = Array.isArray(result['TestRun']) ? result['TestRun'] : [result['TestRun']];
                 testruns.forEach(function(ts) {
@@ -79,11 +79,10 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
 
         var formattedResults = {
             "projectId" : projectId,
-            "test-cycle" : cycleId,
+            "testcycle": cycleId,
             "logs" : testLogs
         };
 
-        emitEvent('SlackEvent', { message: "Results formatted successfully for SpecFlow"}); 
         emitEvent('UpdateQTestWithFormattedResults', formattedResults );
     };
 

@@ -6,7 +6,7 @@ $payload = (Get-Content "<ENTER YOUR RESULTS FILE NAME HERE>" -Raw)
 
 $body = @{
  'projectId' = '<ENTER YOUR QTEST PROJECT ID HERE>'
- 'test-cycle' = '<ENTER YOUR QTEST TEST CYCLE ID HERE>'
+ 'testcycle' = '<ENTER YOUR QTEST TEST CYCLE ID HERE>'
  'requiresDecode' = 'true'
  'result' = $payload
 }

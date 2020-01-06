@@ -1,3 +1,21 @@
+/**
+ * call source: delivery script from CI Tool (Jenkins, Bamboo, TeamCity, CircleCI, etc), Launch, locally executed
+ *              see 'delivery' subdirectory in this repository
+ * payload example:
+ * {
+ *   properties: 'example value'
+ *   arrayOfItems: [ { <properties and example values> } ]
+ * }
+ * constants:
+ * - SCENARIO_PROJECT_ID: 84d46c6a-d39d-11e9-bb65-2a2ae2dbcce4
+ * - QTEST_TOKEN: 84d46c6a-d39d-11e9-bb65-2a2ae2dbcce4
+ * outputs:
+ * - The unformatted items in the payload will be formatted into qTest test case
+ * - The test cases then will be added to qTest project
+ * - The unformatted result will be sent to the trigger "TriggerName"
+ * - The ChatOps channel (if there is any) will notificate the result or error
+ */
+
 const { Webhooks } = require('@qasymphony/pulse-sdk');
 
 exports.handler = function ({ event: body, constants, triggers }, context, callback) {
@@ -12,7 +30,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
     var payload = body;
     var testResults = payload.result;
     var projectId = payload.projectId;
-    var cycleId = payload["test-cycle"];
+    var cycleId = payload.testcycle;
     var requiresDecode = payload.requiresDecode;
 
     if(requiresDecode == 'true') {
@@ -22,7 +40,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
     var testLogs = [];
     console.log("TEST RESULTS: " + testResults);
 
-    //emitEvent('SlackEvent', { TESTRESULTS: testResults });
+    //emitEvent('ChatOpsEvent', { TESTRESULTS: testResults });
 
     testResults.forEach(function (feature) {
         var featureName = feature.name;
@@ -64,7 +82,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                 if (status == "undefined") {
                     TCStatus = "incomplete";
                     status = "incomplete";                    
-                    emitEvent('SlackEvent', { message: "Step result not found: " + step.name + "; marking as incomplete." });
+                    emitEvent('ChatOpsEvent', { message: "Step result not found: " + step.name + "; marking as incomplete." });
                 }
 
                 // Are there an attachment for this step?
@@ -114,11 +132,10 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
 
     var formattedResults = {
         "projectId": projectId,
-        "test-cycle": cycleId,
+        "testcycle": cycleId,
         "logs": testLogs
     };
 
-    emitEvent('<INSERT NAME OF CHATOPS INTEGRATION RULE HERE>', { message: "FormatJavaCucumber success" });
     emitEvent('<INSERT NAME OF UPDATEQTEST/SCENARIO RULE HERE>', formattedResults);
 
 }

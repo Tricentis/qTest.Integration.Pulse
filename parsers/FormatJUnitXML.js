@@ -12,7 +12,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         var payload = body;
         var testResults = payload.result; 
         var projectId = payload.projectId;
-        var cycleId = payload["test-cycle"];
+        var cycleId = payload.testcycle;
         var testLogs = [];
         var requiresDecode = payload.requiresDecode;
 
@@ -34,7 +34,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
             explicitChildren: false
         }, function (err, result) {
             if (err) {
-                emitEvent('SlackEvent', { Error: "Unexpected Error Parsing XML Document: " + err }); 
+                emitEvent('ChatOpsEvent', { Error: "Unexpected Error Parsing XML Document: " + err }); 
                 console.log(err);
             } else {
                 var testsuites = Array.isArray(result.testsuites['testsuite']) ? result.testsuites['testsuite'] : [result.testsuites['testsuite']];
@@ -111,11 +111,10 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
 
         var formattedResults = {
             "projectId" : projectId,
-            "test-cycle" : cycleId,
+            "testcycle": cycleId,
             "logs" : testLogs
         };
 
-        emitEvent('SlackEvent', { ResultsFormatSuccess: "Results formatted successfully for project"}); 
         emitEvent('UpdateQTestWithFormattedResults', formattedResults );
 
 };

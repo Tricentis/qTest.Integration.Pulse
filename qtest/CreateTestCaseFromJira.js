@@ -35,7 +35,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
       else
         console.log(response);
 
-        emitEvent('SlackEvent', { NewTestCase: "A new test case was added here: " + response.body.web_url });
+        emitEvent('ChatOpsEvent', { message: "A new test case was added here: " + response.body.web_url });
 
         // Get the Test Case Object ID
         tcid = response.body.id;
