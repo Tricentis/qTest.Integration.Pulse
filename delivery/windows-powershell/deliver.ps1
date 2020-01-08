@@ -1,13 +1,12 @@
 $url = '<ENTER YOUR PARSER PULSE WEBHOOK HERE>'
 
-Set-Location -Path "<ENTER YOUR RESULTS DIRECTORY HERE>"
-
-$payload = (Get-Content "<ENTER YOUR RESULTS FILE NAME HERE>" -Raw)
+$content = Get-Content "<ENTER YOUR RESULTS FILE NAME HERE>" -Raw
+$bytes = [System.Text.Encoding]::UTF8.GetBytes($content)
+$payload = [System.Convert]::ToBase64String($bytes)
 
 $body = @{
  'projectId' = '<ENTER YOUR QTEST PROJECT ID HERE>'
  'testcycle' = '<ENTER YOUR QTEST TEST CYCLE ID HERE>'
- 'requiresDecode' = 'true'
  'result' = $payload
 }
 

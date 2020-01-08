@@ -31,8 +31,7 @@ var opts = {
     json: true,
     body: {
     	projectId: projectId,
-        'test-cycle': cycleId,
-        requiresDecode: 'true',
+        testcycle: cycleId,
         result: result
     }
 };
