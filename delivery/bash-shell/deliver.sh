@@ -2,9 +2,11 @@
 
 cd "<ENTER YOUR RESULTS DIRECTORY HERE>" # CHANGE THIS TO POINT TO YOUR JSON RESULTS FILE DIRECTORY
 
-echo '{ "testcycle" : <ENTER YOUR QTEST TEST CYCLE ID HERE>, "result" : ' > payload.json
-cat <ENTER YOUR RESULTS FILENAME HERE> >> payload.json
-echo ', "projectId" : <ENTER YOUR QTEST PROJECT ID HERE> }' >> payload.json
+logs=$(base64 -w 0 <ENTER YOUR RESULT FILE NAME HERE>)
+
+echo -n '{ "testcycle" : <ENTER YOUR QTEST TEST CYCLE ID HERE>, "result" : "' > payload.json
+echo -n $logs >> payload.json
+echo -n '", "projectId" : <ENTER YOUR QTEST PROJECT ID HERE> }' >> payload.json
 
 curl -X POST \
  <ENTER YOUR PULSE PARSER WEBHOOK URL HERE> \

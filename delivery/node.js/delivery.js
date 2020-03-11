@@ -1,11 +1,12 @@
-/**
+/*
  * Notes for Automation Host 2.3.2 and earlier:
  * This script currently requires the 'request' and 'uuid' node.js modules
  * to be manually copied to the host installation directory:
  * Ex: C:\[host directory]\build\qautomation\runner\node_modules
  * Uncommenting the next line determines where the host is looking for node modules:
- * console.log(module.paths);
  */
+
+// console.log(module.paths);
 
 const fs = require('fs');
 const path = require('path');
@@ -26,13 +27,16 @@ try {
     console.log('Error: ', e.stack);
 }
 
+let buff = new Buffer(result);
+let base64data = buff.toString('base64');
+
 var opts = {
     url: pulseUri,
     json: true,
     body: {
     	projectId: projectId,
         testcycle: cycleId,
-        result: result
+        result: base64data
     }
 };
 

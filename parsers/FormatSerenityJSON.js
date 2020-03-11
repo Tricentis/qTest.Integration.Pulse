@@ -201,11 +201,7 @@ const flatMap = (f, xs) => xs.map(f).reduce(concat, []);
   const { projectId, requiresDecode } = payload;
   const cycleId = payload.testcycle;
 
-  let testResults = payload.result;
-
-  if (requiresDecode === "true" || requiresDecode === true) {
-    testResults = JSON.parse(testResults);
-  }
+  let testResults = JSON.parse(Buffer.from(payload.result, 'base64').toString('ascii'));
 
   testResults = flatMap(splitExamples, testResults);
   const testLogs = testResults.map(processTestResult);

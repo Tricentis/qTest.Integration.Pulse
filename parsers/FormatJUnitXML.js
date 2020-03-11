@@ -10,18 +10,13 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
     }
                 
         var payload = body;
-        var testResults = payload.result; 
         var projectId = payload.projectId;
         var cycleId = payload.testcycle;
         var testLogs = [];
-        var requiresDecode = payload.requiresDecode;
 
-        if(requiresDecode == 'true') {
-            var xmlString = decodeURI(testResults);
-            xmlString = xmlString.replace(/`/g, '&');
-        }
+        let testResults = Buffer.from(payload.result, 'base64').toString('ascii');
 
-        console.log(xmlString);
+        console.log(testResults);
 
         var parseString = require('xml2js').parseString;
         var startTime = '';

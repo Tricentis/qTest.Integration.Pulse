@@ -14,18 +14,13 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         const xml2js = require("xml2js");
 
         var payload = body;
-        var testResults = payload.result;
         var projectId = payload.projectId;
         var cycleId = payload.testcycle;
         var testLogs = [];
-        var requiresDecode = payload.requiresDecode;
 
-        if(requiresDecode == 'true') {
-            var xmlString = decodeURI(testResults);
-            xmlString = xmlString.replace(/`/g, '&#180;');
-        }
+        let testResults = Buffer.from(payload.result, 'base64').toString('ascii');
 
-        xml2js.parseString(xmlString, {
+        xml2js.parseString(testResults, {
             preserveChildrenOrder: true,
             explicitArray: false,
             explicitChildren: false

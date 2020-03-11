@@ -8,14 +8,10 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
     }
 
         var payload = body;
-        var testResults = payload.result; 
         var projectId = payload.projectId;
         var cycleId = payload.testcycle;
-        var requiresDecode = payload.requiresDecode;
 
-        if(requiresDecode == 'true') {
-            testResults = JSON.parse(testResults);
-        }
+        let testResults = JSON.parse(Buffer.from(payload.result, 'base64').toString('ascii'));
 
         var testLogs = [];
 
@@ -134,5 +130,5 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
             "logs" : testLogs
         };
 
-        emitEvent('<INSERT NAME OF UPDATE QTEST RULE HERE>', formattedResults );
+        emitEvent('UpdateQTestWithFormattedResults', formattedResults );
 }

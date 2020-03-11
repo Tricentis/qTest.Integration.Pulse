@@ -10,20 +10,15 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
     }
                 
         var payload = body;
-        var testResults = payload.result; 
         var projectId = payload.projectId;
         var cycleId = payload.testcycle;
-        var moduleName = payload.moduleName;
+        var testLogs = [];
+
+        let testResults = Buffer.from(payload.result, 'base64').toString('ascii');
+
+        var suiteName = "";
         var testLogs = [];
         var testSteps = [];
-        var requiresDecode = payload.requiresDecode;
-
-        if(requiresDecode == 'true') {
-            var xmlString = decodeURI(testResults);
-            xmlString = xmlString.replace(/`/g, '&');
-        }
-
-        console.log(xmlString);
 
         var parseString = require('xml2js').parseString;
         var startTime = '';
@@ -42,7 +37,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                 var testsuites = Array.isArray(result.testsuites['testsuite']) ? result.testsuites['testsuite'] : [result.testsuites['testsuite']];
                 testsuites.forEach(function(testsuite) {
                     lastEndTime = 0;
-                    var suiteName = testsuite.$.name;
+                    suiteName = testsuite.$.name;
                     console.log('Suite Name: ' + suiteName)
                     var testcases = Array.isArray(testsuite.testcase) ? testsuite.testcase : [testsuite.testcase];
                     testcases.forEach(function(testcase) {
@@ -50,7 +45,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                         className = testcase.$.name;
                         console.log('Class Name: ' + className)
                         var moduleNames = [
-                            moduleName
+                            suiteName
                         ];
                         var classStatus = 'passed';
                         if(lastEndTime == 0) {
@@ -148,7 +143,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         };
         
         // uncomment following if using ChatOps integrations
-        // emitEvent('ChatopsEvent', { message: "Results formatted successfully for Tosca Execution List: " + moduleName});
+        emitEvent('ChatopsEvent', { message: "Results formatted successfully for Tosca Execution List: " + suiteName});
         emitEvent('UpdateQTestWithFormattedResults', formattedResults );
 
 };

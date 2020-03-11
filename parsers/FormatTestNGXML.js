@@ -12,19 +12,15 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         const xml2js = require("xml2js");
 
         var payload = body;
-        var testResults = payload.result;
         var projectId = payload.projectId;
         var cycleId = payload.testcycle;
         var testLogs = [];
+
+        let testResults = Buffer.from(payload.result, 'base64').toString('ascii');
+        
         var timestamp = new Date();
-        var requiresDecode = payload.requiresDecode;
 
-        if(requiresDecode == 'true') {
-            var xmlString = decodeURI(testResults);
-            xmlString = xmlString.replace(/`/g, '&');
-        }
-
-        xml2js.parseString(xmlString, {
+        xml2js.parseString(testResults, {
             preserveChildrenOrder: true,
             explicitArray: false,
             explicitChildren: false
@@ -84,5 +80,5 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
             "logs" : testLogs
         };
 
-        emitEvent('<INSERT NAME OF UPDATE QTEST RULE HERE>', formattedResults );
+        emitEvent('UpdateQTestWithFormattedResults', formattedResults );
     }

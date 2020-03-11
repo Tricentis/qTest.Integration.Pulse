@@ -28,17 +28,13 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
 
     /////// Pulse version
     var payload = body;
-    var testResults = payload.result;
     var projectId = payload.projectId;
     var cycleId = payload.testcycle;
-    var requiresDecode = payload.requiresDecode;
 
-    if(requiresDecode == 'true') {
-        testResults = JSON.parse(testResults);
-    }
+    let testResults = JSON.parse(Buffer.from(payload.result, 'base64').toString('ascii'));
 
     var testLogs = [];
-    console.log("TEST RESULTS: " + testResults);
+    //console.log("TEST RESULTS: " + testResults);
 
     //emitEvent('ChatOpsEvent', { TESTRESULTS: testResults });
 
@@ -136,6 +132,6 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         "logs": testLogs
     };
 
-    emitEvent('<INSERT NAME OF UPDATEQTEST/SCENARIO RULE HERE>', formattedResults);
+    emitEvent('UpdateQTestWithFormattedResults', formattedResults);
 
 }
