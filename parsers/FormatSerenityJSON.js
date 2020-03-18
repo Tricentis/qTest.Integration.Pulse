@@ -2,14 +2,12 @@ const PulseSdk = require('@qasymphony/pulse-sdk');
 const request = require('request');
 const xml2js = require('xml2js');
 
-// DO NOT EDIT exported "handler" function is the entrypoint
-//exports.handler = async function({ event, constants, triggers }, context, callback) {
-  // TODO implement
-
 /* eslint-disable no-else-return */
 /* eslint-disable no-console */
 
 /**
+ * Parser customized by Specsavers - framework customizations may
+ * alter your experiences with this parser.
  * Takes serenity format test result and converts it to qtest format
  *
  * qTest has:
