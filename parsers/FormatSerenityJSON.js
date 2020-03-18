@@ -2,14 +2,14 @@ const PulseSdk = require('@qasymphony/pulse-sdk');
 const request = require('request');
 const xml2js = require('xml2js');
 
+// DO NOT EDIT exported "handler" function is the entrypoint
+//exports.handler = async function({ event, constants, triggers }, context, callback) {
+  // TODO implement
+
 /* eslint-disable no-else-return */
 /* eslint-disable no-console */
 
 /**
- *
- * !! This parser requires that the multiple Serenity JSON result files
- * !! are concatenated into a single payload object as a JSON array.
- *
  * Takes serenity format test result and converts it to qtest format
  *
  * qTest has:
@@ -20,28 +20,39 @@ const xml2js = require('xml2js');
  *    Passed
  *    Unexecuted
  *
- * Serenity has:
+ * Serenity has
  *
  * @param serenityStatus serenity output test result
  * @returns {string} corresponding qtest format test result
  */
  function convertSerenityStatusToQtestStatus(serenityStatus) {
-  switch (String(serenityStatus.toUpperCase())) {
+  switch (String(serenityStatus)){//}.toUpperCase())) {
     case "SUCCESS":
       return "passed";
+    case "passed":
+      return "passed";
     case "SKIPPED":
-      return "unexecuted";
+      return "failed";
+    case "skipped":
+      return "failed";
     case "FAILED":
+    case "failed":
     case "FAILURE":
     case "BROKEN":
     case "ERROR":
       return "failed";
     case "PENDING":
-      return "blocked";
+      return "failed";
     case "UNDEFINED":
       return "failed";
+    case "undefined":
+      return "failed";
+    case "IGNORED":
+      return "failed";
+    case "null":
+    return "failed";
     default:
-      throw `Unknown serenity status ${serenityStatus}`;
+      return "failed";
   }
 }
 
@@ -53,23 +64,28 @@ const xml2js = require('xml2js');
  */
  function processTestResult(scenario, order) {
   const featureName = scenario.userStory.storyName;
-  console.log(`Feature: ${featureName}`);
-  console.log(`Scenario: ${scenario.name}`);
+  //console.log(`Feature: ${featureName}`);
+  //console.log(`Scenario: ${scenario.name}`);
 
-  const testStepLogs = [];
-
+const testStepLogs = [];
   /**
    * Processes one step and any recursively parses children if there are any
    * @param testStep The current step to parse
    */
   function processTestStep(testStep) {
-    console.log(`Step: ${testStep.description}`);
+    //console.log(`Step: ${testStep.description}`);
 
     const qtestStatus = convertSerenityStatusToQtestStatus(testStep.result);
 
     let actual = testStep.description;
     if (qtestStatus === "failed") {
-      actual = testStep.exception.message;
+      //actual = testStep.exception.message;
+      actual = "failed";
+    }
+
+    if (qtestStatus === "undefined") {
+      //actual = testStep.exception.message;
+      actual = "failed";
     }
 
     let stepAttachments = [];
@@ -81,7 +97,7 @@ const xml2js = require('xml2js');
           content_type: att.mime_type,
           data: att.data
         };
-        console.debug(`Attachment: ${attachment.description}`);
+        //console.debug(`Attachment: ${attachment.description}`);
 
         return attachment;
       });
@@ -100,11 +116,10 @@ const xml2js = require('xml2js');
     testStepLogs.push(stepLog);
 
 
-
     if (typeof testStep.children === "undefined") {
-      console.log("No testStep children, moving on...");
+      //console.log("No testStep children, moving on...");
     } else {
-      console.debug(`${testStep.children.length} children to process`);
+      //console.debug(`${testStep.children.length} children to process`);
       // Process all children
       testStep.children.map(processTestStep);
     }
@@ -121,7 +136,6 @@ const xml2js = require('xml2js');
   const scenarioName = scenario.name;
   const propertyArr = [];
 
-
   const startDate = new Date(scenario.startTime.replace(/\[.*?\]/g, ""));
   const endDate = new Date(startDate + scenario.duration);
 
@@ -130,14 +144,14 @@ const xml2js = require('xml2js');
     exe_end_date: endDate,
     module_names: [featureName],
     name: scenarioName,
-    automation_content: `${scenario.userStory.path}#${scenarioId}`,
-    build_number: "10",
-    build_url: "http://localhost:8080/jenkins",
+    automation_content: `${scenario.userStory.path}#${scenarioId}`.replace(/[^a-zA-Z0-9]/g, '-'),
     properties: propertyArr,
     status: convertSerenityStatusToQtestStatus(scenario.result),
     order: order,
     test_step_logs: testStepLogs
   };
+
+  console.debug(reportingLog.status);
 
   console.debug(reportingLog);
 
@@ -157,9 +171,16 @@ const xml2js = require('xml2js');
     return [testResult];
   }
 
-  console.debug(`${testResult.name} has examples`);
+  //console.debug(`${testResult.name} has examples`);
 
   return testResult.testSteps.map((example, order) => {
+    //catches undefined
+    var hasTestSteps = "failed";
+    try{
+      hasTestSteps=testResult.dataTable.rows[order].result;} 
+      catch (error)
+      {hasTestSteps = "failed";}
+
     return {
       // Copy original test results
       //...testResult,
@@ -179,7 +200,9 @@ const xml2js = require('xml2js');
       // Clear 'data table' - not used in qtest
       dataTable: {},
       // Copy result from the specific example
-      result: testResult.dataTable.rows[order].result,
+      result: hasTestSteps,
+      //result: "failed",
+      //result: testResult.dataTable.rows[order].result,
       // Copy only the test results we care about
       // NOTE: This makes a 'dummy' step with the "Example #1: ..." at the start
       testSteps: [example]
@@ -197,8 +220,7 @@ const flatMap = (f, xs) => xs.map(f).reduce(concat, []);
  * @returns {{projectId: *, "test-cycle": *, logs: *}}
  */
  function processPayload(payload) {
-  //const { projectId, requiresDecode, foldername } = payload;  
-  const { projectId, requiresDecode } = payload;
+  const projectId = payload.projectId;
   const cycleId = payload.testcycle;
 
   let testResults = JSON.parse(Buffer.from(payload.result, 'base64').toString('ascii'));
@@ -206,18 +228,10 @@ const flatMap = (f, xs) => xs.map(f).reduce(concat, []);
   testResults = flatMap(splitExamples, testResults);
   const testLogs = testResults.map(processTestResult);
 
-/*
-// Use this in conjunction with line 201 and a payload object 'foldername' to determine a lower level folder structure.
-
-  testLogs.forEach(item => {
-    item.module_names.push(foldername);
-  });
-*/  
-
   return {
-    projectId,
+    "projectId": projectId,
     "testcycle": cycleId,
-    logs: testLogs
+    "logs": testLogs
   };
 }
 
@@ -238,5 +252,7 @@ exports.handler = function(
 ) {
   const formattedResults = processPayload(body);
 
+  // Emit next fxn to upload results/parse
+  // emitEvent('SlackEvent', { ResultsFormatSuccess: "Results formatted successfully for project." });
   emitEvent(triggers, "UpdateQTestWithFormattedResults", formattedResults);
 };
