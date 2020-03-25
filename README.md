@@ -15,4 +15,4 @@ Repository of open-source Pulse rules powered by the community.
 
 ## Getting Started
 
-Please review the [Pulse documentation](https://support.qasymphony.com/hc/en-us/categories/115000683986-qTest-Pulse) for examples of how to set up a workflow and use Constants.
+Please review the [Pulse documentation](https://support.tricentis.com/community/manuals_detail.do?lang=en&version=On-Demand&module=Tricentis%20qTest%20On-Demand&url=resources/home.htm) for examples of how to set up a workflow and use Constants.
