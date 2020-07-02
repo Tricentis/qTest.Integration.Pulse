@@ -1,7 +1,7 @@
 $url = '<ENTER YOUR PARSER PULSE WEBHOOK HERE>'
 
 $content = Get-Content "<ENTER YOUR RESULTS FILE NAME HERE>" -Raw
-$bytes = [System.Text.Encoding]::UTF8.GetBytes($content)
+$bytes = [System.Text.Encoding]::ASCII.GetBytes($content)
 $payload = [System.Convert]::ToBase64String($bytes)
 
 $body = @{
