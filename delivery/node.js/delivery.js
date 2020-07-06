@@ -1,8 +1,5 @@
 /*
- * Notes for Automation Host 2.3.2 and earlier:
  * This script currently requires the 'request' and 'uuid' node.js modules
- * to be manually copied to the host installation directory:
- * Ex: C:\[host directory]\build\qautomation\runner\node_modules
  * Uncommenting the next line determines where the host is looking for node modules:
  */
 
@@ -21,7 +18,7 @@ var result = '';
 let resultsPath = 'C:\\path\\to\\results\\filename.ext';
 
 try {
-	result = fs.readFileSync(resultsPath, 'utf8');
+	result = fs.readFileSync(resultsPath, 'ascii');
     console.log('Read file successfully.');    
 } catch(e) {
     console.log('Error: ', e.stack);
