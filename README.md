@@ -18,4 +18,12 @@ Repository of open-source Pulse rules powered by the community.
 
 ## Getting Started
 
-Please review the [Pulse documentation](https://support.tricentis.com/community/manuals_detail.do?lang=en&version=On-Demand&module=Tricentis%20qTest%20On-Demand&url=resources/home.htm) for examples of how to set up a workflow and use Constants.
+For a BDD workflow, please review the [Pulse documentation](https://support.tricentis.com/community/manuals_detail.do?lang=en&version=On-Demand&module=Tricentis%20qTest%20On-Demand&url=resources/home.htm) for examples of how to set up a workflow and use Constants.  Please bear in mind that the stock rules in the Pulse v9.1 repository are NOT compatible with the rules in this respository due to updated standards and nomenclatures.
+
+### Identify Your Workflow
+
+It's a good idea to sit down and map out your workflow on a whiteboard.  You will want to answer the following questions:
+
+#### Where does my workflow begin?
+
+In a true agile environment with a CI/CD or DevOps workflow, most likely you will be triggering your builds with some sort of repository action, whether this be a simple push/commit with a smaller development environment, or an approval or merge for larger organizations.  Most Repositories (Github, Bitbucket, Gitlab, etc) maintain a feature that will allow the call of a webhook when one or more of these actions occur.  Sometimes there will be a native integration to kick off the CI/CD pipeline, but when there is not, Pulse can take charge and kick off your CI/CD pipeline via an API call.  In this case you will want to look in the [CI Tool Integrations]{https://github.com/QASymphony/pulse-community/tree/master/citools} for rules that kick off CI/CD pipelines.
