@@ -9,9 +9,12 @@ Repository of open-source Pulse rules powered by the community.
 
 <p align="center"><img width="90%" src="https://d1f5pmhur9pirz.cloudfront.net/wp-content/uploads/2018/12/pulse-flow.png"></p>
 
-## Workflow Overview
+## Workflow Overviews
 
-<p align="center"><img width="100%" src="https://github.com/QASymphony/pulse-community/blob/master/blob/Pulse%20Workflow%20Diagram.png?raw=true"></p>
+<p align="center"><img width="100%" src="https://github.com/QASymphony/pulse-community/blob/master/blob/Pulse%20&%20Scenario%20Workflow%20Diagram.png?raw=true"></p>
+
+<p align="center"><img width="100%" src="https://github.com/QASymphony/pulse-community/blob/master/blob/Pulse%20&%20Tosca%20Workflow%20Diagram.png?raw=true"></p>
+* It should be noted that this integration is much different than either the native qTest or the Launch Universal Agent integrations with Tosca, and thus are not compatible.
 
 ## Getting Started
 
