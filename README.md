@@ -20,10 +20,24 @@ Repository of open-source Pulse rules powered by the community.
 
 For a BDD workflow, please review the [Pulse documentation](https://support.tricentis.com/community/manuals_detail.do?lang=en&version=On-Demand&module=Tricentis%20qTest%20On-Demand&url=resources/home.htm) for examples of how to set up a workflow and use Constants.  Please bear in mind that the stock rules in the Pulse v9.1 repository are NOT compatible with the rules in this respository due to updated standards and nomenclatures.
 
+For a webinar that features a live demonstration of the above workflow, please go [here](https://www.tricentis.com/resources/improve-quality-in-devops-pipelines-with-agile-test-management/).
+
 ### Identify Your Workflow
 
-It's a good idea to sit down and map out your workflow on a whiteboard.  You will want to answer the following questions:
+It's a good idea to sit down and map out your workflow on a whiteboard.  You will want to accmplish the following steps:
 
-#### Where does my workflow begin?
+#### Beginning Your Workflow
 
-In a true agile environment with a CI/CD or DevOps workflow, most likely you will be triggering your builds with some sort of repository action, whether this be a simple push/commit with a smaller development environment, or an approval or merge for larger organizations.  Most Repositories (Github, Bitbucket, Gitlab, etc) maintain a feature that will allow the call of a webhook when one or more of these actions occur.  Sometimes there will be a native integration to kick off the CI/CD pipeline, but when there is not, Pulse can take charge and kick off your CI/CD pipeline via an API call.  In this case you will want to look in the [CI Tool Integrations](https://github.com/QASymphony/pulse-community/tree/master/citools) for Actions that kick off CI/CD pipelines.  In Pulse, set up a Trigger (webhook) and an Action (script) and create a rule to link the two.  Look for the Constants needed in the documentation block of the Action script and fill them in as needed in Pulse.
+In a true agile environment with a CI/CD or DevOps workflow, most likely you will be triggering your builds with some sort of repository action, whether this be a simple push/commit with a smaller development environment, or an approval or merge for larger organizations.  Most Repositories (Github, Bitbucket, Gitlab, etc) maintain a feature that will allow the call of a webhook when one or more of these actions occur.  Sometimes there will be a native integration to kick off the CI/CD pipeline, but when there is not, Pulse can take charge and kick off your CI/CD pipeline via an API call.  In this case you will want to look in the [CI Tool Integrations](https://github.com/QASymphony/pulse-community/tree/master/citools) for Actions that kick off CI/CD pipelines.  In Pulse, set up a Trigger (webhook) and an Action (script) and create a Rule to link the two.  Look for the Constants needed in the documentation block of the Action script and fill them in as needed in Pulse.
+
+#### Delivery and Parse Testing Tool or Framework Results
+
+This is key to picking out or developing your own parser.  The output of the parser creates a standardized construct that is consumable by a qTest Manager API.  In order to leverage a parser, you will need to deliver the framework or tool results file (expecting JSON or XML) to the parser webhook endpoint with a [delivery script](https://github.com/QASymphony/pulse-community/tree/master/delivery) executed by your chosen CI/CD tool.  You will need to edit the delivery script to include the qTest Project ID, top level Test Cycle ID, parser webhook endpoint, and location of the results output file.  You can find the qTest Project and Test Cycle IDs in the URL when you select your chosen Test Cycle in qTest Manager, see below.
+
+<p align="center"><img src="https://github.com/QASymphony/pulse-community/blob/master/blob/qTestProjectTCIds.png?raw=true"></p>
+
+There is a [selection of parsers](https://github.com/QASymphony/pulse-community/tree/master/parsers) available, but they are easy to create as well.  Create a Trigger and Action with your chosen parser and link them together with a Rule.  Update your delivery script with this webhook endpoint.  To create your own parser, review [this API documentation](https://api.qasymphony.com/#/test-log/submitAutomationTestLogs2).  In the next step, you will be delivering the parser results to qTest Manager via a Pulse rule wrapped around this API, and the payload will need to match the expected input for this API.
+
+#### Submission of Parsed Results to qTest Manager
+
+[This rule](https://github.com/QASymphony/pulse-community/blob/master/qtest/UpdateQTestWithResults.js) takes the standardized construct created by the parser, then authenticates and submits it to a qTest Manager API, as linked in the section above.  You will require a qTest API Bearer Token in order to authenticate.  For heavily automated workflows, we suggest creating a service account in qTest that has access to all automation projects to allow submission of results to any project with one account.
