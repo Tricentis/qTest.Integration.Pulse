@@ -34,7 +34,7 @@ In a true agile environment with a CI/CD or DevOps workflow, most likely you wil
 
 This is key to picking out or developing your own parser.  The output of the parser creates a standardized construct that is consumable by a qTest Manager API.  In order to leverage a parser, you will need to deliver the framework or tool results file (expecting JSON or XML) to the parser webhook endpoint with a [delivery script](https://github.com/QASymphony/pulse-community/tree/master/delivery) executed by your chosen CI/CD tool.  You will need to edit the delivery script to include the qTest Project ID, top level Test Cycle ID, parser webhook endpoint, and location of the results output file.  You can find the qTest Project and Test Cycle IDs in the URL when you select your chosen Test Cycle in qTest Manager, see below.
 
-<p align="center"><img src="https://github.com/QASymphony/pulse-community/blob/master/blob/qTestProjectTCIds.png?raw=true"></p>
+<p align="center"><img src="https://github.com/QASymphony/pulse-community/blob/master/blob/qTestPrjTCIds.png?raw=true"></p>
 
 There is a [selection of parsers](https://github.com/QASymphony/pulse-community/tree/master/parsers) available, but they are easy to create as well.  Create a Trigger and Action with your chosen parser and link them together with a Rule.  Update your delivery script with this webhook endpoint.  To create your own parser, review [this API documentation](https://api.qasymphony.com/#/test-log/submitAutomationTestLogs2).  In the next step, you will be delivering the parser results to qTest Manager via a Pulse rule wrapped around this API, and the payload will need to match the expected input for this API.
 
