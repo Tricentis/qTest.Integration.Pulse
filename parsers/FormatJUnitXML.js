@@ -26,7 +26,8 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         parseString(testResults, {
             preserveChildrenOrder: true,
             explicitArray: false,
-            explicitChildren: false
+            explicitChildren: false,
+            emptyTag: "..."
         }, function (err, result) {
             if (err) {
                 emitEvent('ChatOpsEvent', { Error: "Unexpected Error Parsing XML Document: " + err }); 
@@ -54,12 +55,12 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                                             moduleCount++;
                                         }
                                     })
-                                    if(moduleNames.length == 0) {
+                                    if (moduleNames.length == 0) {
                                         moduleNames.push(suiteName);
                                     }
                                     console.log('Case Name: ' + className)
                                     var classStatus = 'passed';
-                                    if(lastEndTime == 0) {
+                                    if (lastEndTime == 0) {
                                         startTime = new Date(Date.parse(testsuite.$.timestamp)).toISOString();
                                     } else {
                                         startTime = lastEndTime;
@@ -72,7 +73,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                                     var stack = '';
                                     var testFailure = Array.isArray(testcase.failure) ? testcase.failure : [testcase.failure];
                                     testFailure.forEach(function(failure) {
-                                        if(failure !== undefined) {
+                                        if (failure) {
                                             console.log(failure.$.type)
                                             note = failure.$.type + ': ' + failure.$.message;
                                             console.log(failure._)
@@ -80,6 +81,23 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                                             classStatus = 'failed';
                                         }
                                     });
+
+                                    var testError = Array.isArray(testcase.error) ? testcase.error : [testcase.error];
+                                    testError.forEach(function(error) {
+                                        if (error) {
+                                            console.log(error.$.message)
+                                            note = error.$.message;
+                                            classStatus = 'failed';
+                                        }
+                                    });
+
+                                    var testSkipped = Array.isArray(testcase.skipped) ? testcase.skipped : [testcase.skipped];
+                                    testSkipped.forEach(function(skipped) {
+                                        if (skipped) {
+                                            classStatus = 'skipped';
+                                        }
+                                    });
+
                                     console.log(classStatus);
 
                                     var testLog = {
@@ -92,12 +110,13 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                                         automation_content: htmlEntities(className),
                                         module_names: moduleNames
                                     };
+
                                     if (stack !== '') {
-                                    testLog.attachments.push({
-                                        name: `${className}.txt`,
-                                        data: Buffer.from(stack).toString("base64"),
-                                        content_type: "text/plain"
-                                    });
+                                        testLog.attachments.push({
+                                            name: `${className}.txt`,
+                                            data: Buffer.from(stack).toString("base64"),
+                                            content_type: "text/plain"
+                                        });
                                     }
                                     //testLog.attachments.push(payload.consoleOutput[0]);
                                     testLogs.push(testLog);
@@ -148,9 +167,10 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
 
                             var note = '';
                             var stack = '';
+                            
                             var testFailure = Array.isArray(testcase.failure) ? testcase.failure : [testcase.failure];
                             testFailure.forEach(function(failure) {
-                                if(failure !== undefined) {
+                                if (failure) {
                                     console.log(failure.$.type)
                                     note = failure.$.type + ': ' + failure.$.message;
                                     console.log(failure._)
@@ -158,6 +178,23 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                                     classStatus = 'failed';
                                 }
                             });
+
+                            var testError = Array.isArray(testcase.error) ? testcase.error : [testcase.error];
+                            testError.forEach(function(error) {
+                                if (error) {
+                                    console.log(error.$.message)
+                                    note = error.$.message;
+                                    classStatus = 'failed';
+                                }
+                            });
+
+                            var testSkipped = Array.isArray(testcase.skipped) ? testcase.skipped : [testcase.skipped];
+                            testSkipped.forEach(function(skipped) {
+                                if (skipped) {
+                                    classStatus = 'skipped';
+                                }
+                            });
+
                             console.log(classStatus);
 
                             var testLog = {
