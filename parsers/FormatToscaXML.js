@@ -61,12 +61,15 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                         var stepOrder = 1;
                         testSteps = [];
 
-                        stepArray.forEach(function(step) {
+                        stepArray.forEach(function(step, i) {
                             var testStep = '';
-                            if(step.trim() == '') {
+                            if(i == 0) {
+                                console.log('First line is the test case name, skipping');
+                            }
+                            else if(step.trim() == '') {
                                 console.log('Blank line, skipping');
                             }
-                            if(step.startsWith('+ Passed')) {
+                            else if(step.trim().startsWith('+ Passed')) {
                                 console.log('Step is a pass');
                                 testStep = {
                                     description: step.replace('+ Passed', '').trim(),
@@ -78,12 +81,24 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                                 testSteps.push(testStep);
                                 stepOrder ++;
                             }
-                            else if(step.startsWith('- Failed')) {
+                            else if(step.trim().startsWith('- Failed')) {
                                 console.log('Step is a failure');
                                 testStep = {
                                     description: step.replace('- Failed', '').trim(),
                                     expected_result: step.replace('- Failed', '').trim(),
                                     actual_result: step.replace('- Failed', '').trim(),
+                                    order: stepOrder,
+                                    status: "FAILED"
+                                };
+                                testSteps.push(testStep);
+                                stepOrder ++;
+                            }
+                            else if (step.trim().startsWith('Error')) {
+                                console.log('Step is an error');
+                                testStep = {
+                                    description: step.replace('Error', '').trim(),
+                                    expected_result: step.replace('-Error', '').trim(),
+                                    actual_result: step.replace('Error', '').trim(),
                                     order: stepOrder,
                                     status: "FAILED"
                                 };
@@ -96,6 +111,11 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                                 testSteps[testSteps.length - 1].expected_result = testSteps[testSteps.length - 1].expected_result.concat('\n', step.trim());
                                 testSteps[testSteps.length - 1].actual_result = testSteps[testSteps.length - 1].actual_result.concat('\n', step.trim());
                             }
+                        })
+
+                        testSteps.forEach(function(step, i) {
+                            testSteps[i].description = step.description.replace(/({[^}]+})/g, "");
+                            testSteps[i].expected_result = step.expected_result.replace(/({[^}]+})/g, "");
                         })
 
                         var note = '';
@@ -118,7 +138,8 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                             note: note,
                             exe_start_date: startTime,
                             exe_end_date: endTime,
-                            automation_content: htmlEntities(className),
+                            //automation_content: htmlEntities(className),
+                            automation_content: className,
                             module_names: moduleNames
                         };
                         if (stack !== '') {
