@@ -16,6 +16,7 @@ const req = async module => {
     return require(module);
   } catch (e) {
     console.log(`=== could not include "${module}" ===`);
+    console.log(e);
     process.exit(1);
   }
 }
