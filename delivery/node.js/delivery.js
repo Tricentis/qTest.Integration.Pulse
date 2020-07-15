@@ -4,19 +4,19 @@ const cp = require('child_process');
 // the Automation Host service prior to executing the script.
 const req = async module => {
   try {
-    require.resolve(module)
+    require.resolve(module);
   } catch (e) {
-    console.log(`=== could not resolve "${module}" ===\n=== installing... ===`)
-    cp.execSync(`npm install ${module}`)
-    await setImmediate(() => {})
-    console.log(`=== "${module}" has been installed ===`)
+    console.log(`=== could not resolve "${module}" ===\n=== installing... ===`);
+    cp.execSync(`npm install ${module}`);
+    await setImmediate(() => {});
+    console.log(`=== "${module}" has been installed ===`);
   }
-  console.log(`=== requiring "${module}" ===`)
+  console.log(`=== requiring "${module}" ===`);
   try {
-    return require(module)
+    return require(module);
   } catch (e) {
-    console.log(`=== could not include "${module}" ===`)
-    process.exit(1)
+    console.log(`=== could not include "${module}" ===`);
+    process.exit(1);
   }
 }
 
