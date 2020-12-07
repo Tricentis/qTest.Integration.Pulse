@@ -1,6 +1,6 @@
 /*
- * trigger name: UpdateQTestWithResults
- * call source: any and all Result Parser rules via emitEvent()
+ * trigger name: UpdateQTestAndLinkScenarioRequirements
+ * call source: Cucumber Result Parser rules via emitEvent()
  * payload example:
         {
           "projectId": "5",
@@ -50,7 +50,7 @@
         Ex. demo.qtestnet.com
  * outputs: standardized construct to be consumed by the qTest auto-test-logs API
  * external documentation: https://api.qasymphony.com/#/test-log/submitAutomationTestLogs2
- * Pulse events called: ChatOpsEvent
+ * Pulse events called: ChatOpsEvent, LinkScenarioRequirements
  */
 
 const request = require('request');
@@ -114,11 +114,10 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
 
     createLogsAndTCs()
         .on('response', function () {
-            console.log('[INFO]: ' + response);
+            console.log("[INFO]: About to call Link Requirements Rule.")
             emitEvent('LinkScenarioRequirements', payload);
         })
         .on('error', function (err) {
             emitEvent('ChatOpsEvent', { message: err });
-            console.log(err);
         })
 }
