@@ -30,6 +30,9 @@ This is a parser for Postman API endpoint test results output in JSON.  This is 
 ### QuerySurgeXML.js
 This is a parser for the XML output provided by the QuerySurge testing tool.
 
+### ReadyAPIXML.js
+This is a parser for the XML output provided by the ReadyAPI testing tool.  Expected results will be in a test suite and not individual tests.
+
 ### SerenityJSON.js
 This is a parser for the Serenity BDD XML format, a Cucumber derivative.  This parser has been submitted for public use by our friends at Specsavers UK.
 
