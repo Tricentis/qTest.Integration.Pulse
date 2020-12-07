@@ -14,7 +14,7 @@ Repository of open-source qTest Pulse rules powered by the community.  [What is 
 
 <p align="center"><img width="90%" src="https://d1f5pmhur9pirz.cloudfront.net/wp-content/uploads/2018/12/pulse-flow.png"></p>
 
-## Workflow Overviews
+## Example Workflow Overviews
 
 <p align="center"><img width="100%" src="https://github.com/QASymphony/pulse-community/blob/master/blob/Pulse%20&%20Scenario%20Workflow%20Diagram.png?raw=true"></p>
 
@@ -23,7 +23,7 @@ Repository of open-source qTest Pulse rules powered by the community.  [What is 
 
 ## Getting Started
 
-For a BDD workflow, please review the [Pulse documentation](https://support.tricentis.com/community/manuals_detail.do?lang=en&version=On-Demand&module=Tricentis%20qTest%20On-Demand&url=resources/home.htm) for examples of how to set up a workflow and use Constants.  Please bear in mind that the stock rules in the [Pulse v9.1 repository](https://github.com/QASymphony/PulseRules_v9.1) mentioned by the documentation are NOT compatible with the rules in this respository due to updated standards and nomenclatures.
+For a BDD workflow, please review the [Pulse documentation](https://documentation.tricentis.com/qtest/od/en/content/qtest_pulse/user_guides/qtest_pulse_9.1+_quick_start_guide.htm) for examples of how to set up a workflow and use Constants.  Please bear in mind that the stock rules in the [Pulse v9.1 repository](https://github.com/QASymphony/PulseRules_v9.1) mentioned by the Pulse documentation are NOT compatible with the rules in this respository due to updated standards and nomenclatures.
 
 For a webinar that features a live demonstration of the above workflow, please go [here](https://www.tricentis.com/resources/improve-quality-in-devops-pipelines-with-agile-test-management/).
 
@@ -31,13 +31,13 @@ For a webinar that features a live demonstration of the above workflow, please g
 
 It's a good idea to sit down and map out your workflow on a whiteboard.  You will want to accmplish the following steps:
 
-#### Beginning Your Workflow
+#### Begin Your Workflow
 
 In a true agile environment with a CI/CD or DevOps workflow, most likely you will be triggering your builds with some sort of repository action, whether this be a simple push/commit with a smaller development environment, or an approval or merge for larger organizations.  Most Repositories (Github, Bitbucket, Gitlab, etc) maintain a feature that will allow the call of a webhook when one or more of these actions occur.  Sometimes there will be a native integration to kick off the CI/CD pipeline, but when there is not, Pulse can take charge and kick off your CI/CD pipeline via an API call.  In this case you will want to look in the [CI Tool Integrations](https://github.com/QASymphony/pulse-community/tree/master/citools) for Actions that kick off CI/CD pipelines.  In Pulse, set up a Trigger (webhook) and an Action (script) and create a Rule to link the two.  Look for the Constants needed in the documentation block of the Action script and fill them in as needed in Pulse.
 
-#### Delivery and Parse Testing Tool or Framework Results
+#### Deliver and Parse Testing Tool or Framework Results
 
-This is key to picking out or developing your own parser.  The output of the parser creates a standardized construct that is consumable by a qTest Manager API.  In order to leverage a parser, you will need to deliver the framework or tool results file (expecting JSON or XML) to the parser webhook endpoint with a [delivery script](https://github.com/QASymphony/pulse-community/tree/master/delivery) executed by your chosen CI/CD tool.  You will need to edit the delivery script to include the qTest Project ID, top level Test Cycle ID, parser webhook endpoint, and location of the results output file.  You can find the qTest Project and Test Cycle IDs in the URL when you select your chosen Test Cycle in qTest Manager, see below.
+This is key to picking out or developing your own parser.  The output of the parser creates a standardized construct that is consumable by a qTest Manager API.  In order to leverage a parser, you will need to deliver the framework or tool results file (expecting JSON or XML) to the parser webhook endpoint with a [delivery script](https://github.com/QASymphony/pulse-community/tree/master/delivery) executed by your chosen CI/CD tool.  These scripts may also be used in Launch to bypass the Universal Agent parsers and send the results to Pulse.  You will need to edit the delivery script to include the qTest Project ID, target the top level Test Cycle ID, Pulse framework parser webhook endpoint, and location of the results output file.  You can find the qTest Project and Test Cycle IDs in the URL when you select your chosen Test Cycle in qTest Manager, see below.
 
 <p align="center"><img src="https://github.com/QASymphony/pulse-community/blob/master/blob/qTestPrjTCIds.png?raw=true"></p>
 
