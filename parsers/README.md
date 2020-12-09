@@ -12,17 +12,20 @@ This parser will consume XML results from the Allure framework.  All items marke
 ### AllureCustomXML.js
 This parser will consume XML results from the Allure framework, but at a higher level.  All items marked as test cases in the results file will be marked as test STEPS in qTest.  Use this if your framework outputs test steps as individual test cases.
 
+### CucumberJSON.js
+This is a parser for Cucumber for Java 4.0+ JSON result files.  Earlier versions of Cucumber need to use the Legacy parser.  Required for the qTest Scenario workflow.
+
+### CucumberLegacyJSON.js
+This is a parser for Cucumber for Java versions prior to 4.0 JSON result files.  This is not compatible with Cucumber 4.0+.  You should probably upgrade.
+
 ### CypressMochawesome.js
 This parser consumes JSON results from the Cypress.io Mochawesome frameworks.  Ship the consolidated 'report.json' file to this parser.
 
 ### JUnitXML.js
 This is a parser for JUnit XML result files.  It may also support XUnit result files.
 
-### CucumberJSON.js
-This is a parser for Cucumber for Java 4.0+ JSON result files.  Earlier versions of Cucumber need to use the Legacy parser.  Required for the qTest Scenario workflow.
-
-### CucumberLegacyJSON.js
-This is a parser for Cucumber for Java versions prior to 4.0 JSON result files.  This is not compatible with Cucumber 4.0+.  You should probably upgrade.
+### NUnitXML.js
+This parser is for NUnit XML result files.  It reports tests at the method level, so there are no test steps.  Failures are annotated and attached to the test runs in qTest.
 
 ### PostmanJSON.js
 This is a parser for Postman API endpoint test results output in JSON.  This is a more detailed parser than the one included with Launch, and thus not compatible with results already consumed by Launch.
