@@ -1,6 +1,6 @@
 /*
- * trigger name: UpdateQTestAndLinkScenarioRequirements
- * call source: Cucumber Result Parser rules via emitEvent()
+ * trigger name: UpdateQTestWithResults
+ * call source: any and all Result Parser rules via emitEvent()
  * payload example:
         {
           "projectId": "5",
@@ -8,7 +8,7 @@
           "logs": [
             {
               "status": "passed",
-              "name": "HEALTH CHECK: CME jlpv-cmeapp02",
+              "name": "Test 1 Name",
               "attachments": [],
               "exe_start_date": "2020-10-30T14:56:22.357Z",
               "exe_end_date": "2020-10-30T14:56:22.357Z",
@@ -50,7 +50,7 @@
         Ex. demo.qtestnet.com
  * outputs: standardized construct to be consumed by the qTest auto-test-logs API
  * external documentation: https://api.qasymphony.com/#/test-log/submitAutomationTestLogs2
- * Pulse events called: ChatOpsEvent, LinkScenarioRequirements
+ * Pulse events called: ChatOpsEvent
  */
 
 const request = require('request');
@@ -74,15 +74,17 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
     var testLogs = payload.logs;
     var cycleId = payload.testcycle;
     var projectId = payload.projectId;
+    var queueStatus = 'IN_WAITING'; // IN_WAITING, IN_PROCESSING, FAILED, PENDING and SUCCESS
+    var queueId = 0;
 
     var standardHeaders = {
         'Content-Type': 'application/json',
         'Authorization': `bearer ${constants.QTEST_TOKEN}`
     }
 
-    var createLogsAndTCs = function () {
+    function createLogsAndTCs() {
         var opts = {
-            url: "https://" + constants.ManagerURL + "/api/v3/projects/" + projectId + "/auto-test-logs?type=automation",
+            url: 'http://' + constants.ManagerURL + '/api/v3/projects/' + projectId + '/auto-test-logs?type=automation',
             json: true,
             headers: standardHeaders,
             body: {
@@ -92,32 +94,75 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         };
 
         return request.post(opts, function (err, response, resbody) {
-            console.log('[INFO]: Response Body : ' + resbody);
 
             if (err) {
                 Promise.reject(err);
-                console.log('[ERROR]: ' + err);
+                console.log(err);
             }
             else {
-                emitEvent('ChatOpsEvent', { message: resbody });
+                if (response.body.type == 'AUTOMATION_TEST_LOG') {
+                  queueId = response.body.id;
+                    Promise.resolve('Results queued successfully.');
+                    emitEvent('ChatOpsEvent', { message: '[INFO]: Results queued successfully for id: ' + resbody.id});
+                    console.log('[INFO]: Results queued successfully for id: ' + resbody.id);
+                    checkQueueStatus(queueId);
 
-                if (response.body.type == "AUTOMATION_TEST_LOG") {
-                    Promise.resolve("[INFO]: ploaded results successfully.");
+                    console.log('About to call Link Requirements Rule.');
+                    emitEvent('<INSERT NAME OF LINK SCENARIO REQUIREMENTS RULE HERE>', payload);
                 }
                 else {
-                    emitEvent('ChatOpsEvent', { message: "Wrong type" });
-                    Promise.reject("[ERROR]: Unable to upload test results.  See logs for details.");
+                    emitEvent('ChatOpsEvent', { message: 'Unable to upload test results.' });
+                    Promise.reject('[ERROR]: Unable to upload test results.  See logs for details.');
+                    emitEvent('ChatOpsEvent', { message: '[ERROR]: ' + JSON.stringify(resbody) });
+                    console.log('[ERROR]: ' + JSON.stringify(resbody));
                 }
             }
         });
     };
 
-    createLogsAndTCs()
-        .on('response', function () {
-            console.log("[INFO]: About to call Link Requirements Rule.")
-            emitEvent('LinkScenarioRequirements', payload);
-        })
-        .on('error', function (err) {
-            emitEvent('ChatOpsEvent', { message: err });
-        })
+    async function checkQueueStatus(id) {
+        var opts = {
+            url: 'https://' + constants.ManagerURL + '/api/v3/projects/queue-processing/' + id,
+            json: true,
+            headers: standardHeaders
+        };
+        
+        var queueCounter = 0;
+        const queueProcessing = ['IN_WAITING', 'IN_PROCESSING', 'PENDING'];
+
+        await sleep(2000);
+
+        while (queueProcessing.includes(queueStatus))  {
+
+          await request(opts, function (err, response, resbody) {
+              if (err) {
+                  Promise.reject(err);
+                  console.log(err);
+                  return;
+              }
+              else {
+                queueStatus = resbody.state;
+                Promise.resolve('Queue checked successfully.');
+                emitEvent('ChatOpsEvent', { message: '[INFO]: Queue checked for id: ' + id + ', status is now: ' + queueStatus});
+                console.log('[INFO]: Queue checked for id: ' + id + ', status is now: ' + queueStatus);
+              }
+          });
+
+          queueCounter++;
+
+          if(queueCounter > 30) {
+            console.log('[WARNING]: Queue id: ' + id + ' is still in processing after 60 seconds, likely caused by heavy traffic.')
+            return;
+          } else {                
+                await sleep(2000);
+            }
+        }
+        return;
+    };
+
+    function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+    createLogsAndTCs();
 }
