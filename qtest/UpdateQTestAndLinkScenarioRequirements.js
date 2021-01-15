@@ -106,9 +106,6 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                     emitEvent('ChatOpsEvent', { message: '[INFO]: Results queued successfully for id: ' + resbody.id});
                     console.log('[INFO]: Results queued successfully for id: ' + resbody.id);
                     checkQueueStatus(queueId);
-
-                    console.log('About to call Link Requirements Rule.');
-                    emitEvent('<INSERT NAME OF LINK SCENARIO REQUIREMENTS RULE HERE>', payload);
                 }
                 else {
                     emitEvent('ChatOpsEvent', { message: 'Unable to upload test results.' });
@@ -145,6 +142,10 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                 Promise.resolve('Queue checked successfully.');
                 emitEvent('ChatOpsEvent', { message: '[INFO]: Queue checked for id: ' + id + ', status is now: ' + queueStatus});
                 console.log('[INFO]: Queue checked for id: ' + id + ', status is now: ' + queueStatus);
+                if (!queueProcessing.includes(queueStatus)) {
+                    console.log('About to call Link Requirements Rule.');
+                    emitEvent('LinkScenarioRequirements', payload);
+                }
               }
           });
 
