@@ -17,12 +17,12 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
 
     var standardHeaders = {
         'Content-Type': 'application/json',
-        'Authorization': `bearer ${constants.QTEST_TOKEN}`,
-        'x-scenario-project-id': constants.SCENARIO_PROJECT_ID
+        'Authorization': `bearer ${constants.QtestToken}`,
+        'x-scenario-project-id': constants.ScenarioProjectID
     }
 
     const options = {
-        url: constants.Scenario_URL + '/api/features',
+        url: constants.ScenarioURL + '/api/features',
         method: 'GET',
         headers: standardHeaders
     };
@@ -43,16 +43,26 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
     function LinkRequirements() {
         testLogs.forEach(function (testcase) {
         
-        var matchingFeature = features.find(x => x.name === testcase.featureName);
+        // var matchingFeature = features.find(x => x.name === testcase.featureName);
 
-        if(!matchingFeature)
-            return;
+        var matchingFeatures = features.filter(feature => feature.name === testcase.featureName);
+
+        if (matchingFeatures.length === 0) {
+            return
+        }
+
+        // if(!matchingFeature)
+        //     return;
+
+        matchingFeatures.forEach(function (matchingFeature) { 
+            // Put remaining code below in here
+         })
             
         var reqopts = getReqBody(matchingFeature.issueKey);
         request.post(reqopts, function (err, response, featureResBody) {
 
             if (err) {
-                emitEvent('ChatOpsEvent', { message: "Problem getting requirement: " + err });
+                console.log("Problem getting requirement: " + err );
             }
             else {
                 if (featureResBody.items.length === 0) { // No corresponding feature exists in scenario
@@ -66,11 +76,12 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                 request.post(tcopts, function (tcerr, tcresponse, testCaseResBody) {
 
                     if (tcerr) {
-                        emitEvent('ChatOpsEvent', { message: "Problem getting test case: " + err });
+                        console.log("Problem getting test case: " + err );
                     }
                     else {
                         if(testCaseResBody.items.length === 0) { // Test Case Doesn't yet exist - we'll try this another time
                             console.log('[Info] No testCaseResBody item found')
+                            console.log(tcresponse);
                             return;
                         }
 
@@ -80,12 +91,12 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                         request.post(linkopts, function (optserr, optsresponse, resbody) {
                             if (optserr) {
                                 console.log('[Error] A link is failed to be added.', optserr)
-                                emitEvent('ChatOpsEvent', { message: "Problem creating test link to requirement: " + err });
+                                console.log("Problem creating test link to requirement: " + err);
                             }
                             else {
                                 // Success, we added a link!
                                 console.log('[Info] A link is added')
-                                emitEvent('ChatOpsEvent', { message: "link added for TC: " + testcase.name + " to requirement " + matchingFeature.issueKey });
+                                console.log("link added for TC: " + testcase.name + " to requirement " + matchingFeature.issueKey);
                             }
                         });
                     }
