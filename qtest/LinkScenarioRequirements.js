@@ -54,55 +54,54 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         // if(!matchingFeature)
         //     return;
 
-        matchingFeatures.forEach(function (matchingFeature) { 
-            // Put remaining code below in here
-         })
-            
-        var reqopts = getReqBody(matchingFeature.issueKey);
-        request.post(reqopts, function (err, response, featureResBody) {
+        matchingFeatures.forEach(function (matchingFeature) {             
+            var reqopts = getReqBody(matchingFeature.issueKey);
+            request.post(reqopts, function (err, response, featureResBody) {
 
-            if (err) {
-                console.log("Problem getting requirement: " + err );
-            }
-            else {
-                if (featureResBody.items.length === 0) { // No corresponding feature exists in scenario
-                    console.log('[Info] No featureResBody item found')
-                    return;
+                if (err) {
+                    console.log("Problem getting requirement: " + err );
                 }
-
-                var reqid = featureResBody.items[0].id;
-                var tcopts = getTCBody(testcase.name);
-
-                request.post(tcopts, function (tcerr, tcresponse, testCaseResBody) {
-
-                    if (tcerr) {
-                        console.log("Problem getting test case: " + err );
+                else {
+                    if (featureResBody.items.length === 0) { // No corresponding feature exists in scenario
+                        console.log('[Info] No featureResBody item found')
+                        return;
                     }
-                    else {
-                        if(testCaseResBody.items.length === 0) { // Test Case Doesn't yet exist - we'll try this another time
-                            console.log('[Info] No testCaseResBody item found')
-                            console.log(tcresponse);
-                            return;
+
+                    var reqid = featureResBody.items[0].id;
+                    var tcopts = getTCBody(testcase.name);
+
+                    request.post(tcopts, function (tcerr, tcresponse, testCaseResBody) {
+
+                        if (tcerr) {
+                            console.log("Problem getting test case: " + err );
                         }
-
-                        var tcid = testCaseResBody.items[0].id;
-                        var linkopts = getLinkBody(reqid, tcid);
-
-                        request.post(linkopts, function (optserr, optsresponse, resbody) {
-                            if (optserr) {
-                                console.log('[Error] A link is failed to be added.', optserr)
-                                console.log("Problem creating test link to requirement: " + err);
+                        else {
+                            if(testCaseResBody.items.length === 0) { // Test Case Doesn't yet exist - we'll try this another time
+                                console.log('[Info] No testCaseResBody item found')
+                                console.log(tcresponse);
+                                return;
                             }
-                            else {
-                                // Success, we added a link!
-                                console.log('[Info] A link is added')
-                                console.log("link added for TC: " + testcase.name + " to requirement " + matchingFeature.issueKey);
-                            }
-                        });
-                    }
-                });
-            }
-        });
+
+                            var tcid = testCaseResBody.items[0].id;
+                            var linkopts = getLinkBody(reqid, tcid);
+
+                            request.post(linkopts, function (optserr, optsresponse, resbody) {
+                                if (optserr) {
+                                    console.log('[Error] A link is failed to be added.', optserr)
+                                    console.log("Problem creating test link to requirement: " + err);
+                                }
+                                else {
+                                    // Success, we added a link!
+                                    console.log('[Info] A link is added')
+                                    console.log("link added for TC: " + testcase.name + " to requirement " + matchingFeature.issueKey);
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+         })
+
     });
 
     }
