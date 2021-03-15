@@ -2,7 +2,7 @@
 
 - The name of the parser indicates the framework or tool as well as the expected results output data format.  HTML is not supported nor encouraged as a standardized data format.
 - All framework and tool parsers listed here leverage the delivery scripts and UpdateQTestWithResults.js submission method found in this repository, except as noted in the next point.  See the 'delivery' and 'qtest' subdirectories for more information.
-- Users leveraging the qTest Scenario Plugin for Jira will use UpdateQTestAndLinkScenarioRequirements.js instead to deliver results to qTest and the 
+- Users leveraging the qTest Scenario Plugin for Jira will use UpdateQTestAndLinkScenarioRequirements.js instead to deliver results to qTest, link the Requirements with those brought in from Jira, and colorize Scenario steps in the Plugin.
 - These actions are NOT compatible with the stock Pulse 9.1 BDD workflow rules as these rules incorporate standards and conventions not used in the stock rules.
 - These actions are NOT compatible with the parsers included in Launch due to a difference between leveraged qTest backend API endpoints, however Pulse actions may be used in lieu of a Launch parser by skipping parser selection in the Universal Agent and shipping the results to the Pulse webhook endpoint instead.
 
