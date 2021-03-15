@@ -36,6 +36,9 @@ This is a parser for the XML output provided by the QuerySurge testing tool.
 ### ReadyAPIXML.js
 This is a parser for the XML output provided by the ReadyAPI testing tool.  Expected results will be in a test suite and not individual tests.
 
+### RobotXML.js
+This will parse XML results from the Robot Framework.  Currently, it is a high-level parser and will only work a single non-nested suite of results.
+
 ### SerenityJSON.js
 This is a parser for the Serenity BDD XML format, a Cucumber derivative.  This parser has been submitted for public use by our friends at Specsavers UK.
 
