@@ -38,7 +38,7 @@ exports.handler = async function({ event: body, constants, triggers }, context, 
             emitEvent('ChatOpsEvent', { message: "[ERROR]: Unexpected Error Parsing XML Document: " + err }); 
         } else {
         	console.log('[DEBUG]: ' + JSON.stringify(result));
-            testSuites = Array.isArray(result.robot.suite.suite) ? result.robot.suite.suite : [result.robot.suite.suite]
+            testSuites = Array.isArray(result.robot.suite) ? result.robot.suite : [result.robot.suite]
             testSuites.forEach(function(suiteobj) {
                 var testcases = Array.isArray(suiteobj.test) ? suiteobj.test : [suiteobj.test]
                 var suiteName = suiteobj.$.name;
