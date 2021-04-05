@@ -130,7 +130,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         var queueCounter = 0;
         const queueProcessing = ['IN_WAITING', 'IN_PROCESSING', 'PENDING'];
 
-        await sleep(2000);
+        await sleep(5000);
 
         while (queueProcessing.includes(queueStatus))  {
 
@@ -145,6 +145,10 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                 Promise.resolve('Queue checked successfully.');
                 emitEvent('ChatOpsEvent', { message: '[INFO]: Queue checked for id: ' + id + ', status is now: ' + queueStatus});
                 console.log('[INFO]: Queue checked for id: ' + id + ', status is now: ' + queueStatus);
+                if (queueStatus == 'FAILED') {
+                    emitEvent('ChatOpsEvent', { message: '[ERROR]: ' + resbody.content});
+                    console.log('[ERROR]: ' + resbody.content);
+                }
               }
           });
 
@@ -154,7 +158,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
             console.log('[WARNING]: Queue id: ' + id + ' is still in processing after 60 seconds, likely caused by heavy traffic.')
             return;
           } else {                
-                await sleep(2000);
+                await sleep(5000);
             }
         }
         return;
