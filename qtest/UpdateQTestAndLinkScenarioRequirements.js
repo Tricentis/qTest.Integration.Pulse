@@ -142,6 +142,10 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                 Promise.resolve('Queue checked successfully.');
                 emitEvent('ChatOpsEvent', { message: '[INFO]: Queue checked for id: ' + id + ', status is now: ' + queueStatus});
                 console.log('[INFO]: Queue checked for id: ' + id + ', status is now: ' + queueStatus);
+                if (queueStatus == 'FAILED') {
+                    emitEvent('ChatOpsEvent', { message: '[ERROR]: ' + resbody.content});
+                    console.log('[ERROR]: ' + resbody.content);
+                }
                 if (!queueProcessing.includes(queueStatus)) {
                     console.log('About to call Link Requirements Rule.');
                     emitEvent('LinkScenarioRequirements', payload);
