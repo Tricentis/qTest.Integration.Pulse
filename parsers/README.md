@@ -22,7 +22,7 @@ This is a parser for Cucumber for Java versions prior to 4.0 JSON result files. 
 This parser consumes JSON results from the Cypress.io Mochawesome frameworks.  Ship the consolidated 'report.json' file to this parser.
 
 ### JUnitXML.js
-This is a parser for JUnit XML result files.  It may also support XUnit result files.
+This is a parser for JUnit XML result files.  It should also support XUnit, JBehave and JMeter result files.
 
 ### NUnitXML.js
 This parser is for NUnit XML result files.  It reports tests at the method level, so there are no test steps.  Failures are annotated and attached to the test runs in qTest.
@@ -34,7 +34,7 @@ This is a parser for Postman API endpoint test results output in JSON.  This is 
 This is a parser for the XML output provided by the QuerySurge testing tool.
 
 ### ReadyAPIXML.js
-This is a parser for the XML output provided by the ReadyAPI testing tool.  Expected results will be in a test suite and not individual tests.
+This is a parser for the XML output provided by the ReadyAPI testing tool.  Currently, expected results will be in a test suite and not individual tests.
 
 ### RobotXML.js
 This will parse XML results from the Robot Framework.  Currently, it is a high-level parser and will only work a single non-nested suite of results.
@@ -45,8 +45,8 @@ This is a parser for the Serenity BDD XML format, a Cucumber derivative.  This p
 ### SonarQubeJSON.js
 This is a parser for the SonarQube JSON format for code quality and assurance.  Leverage the webhook calls in SonarQube, please see this article to configure and review the expected format: https://docs.sonarqube.org/latest/project-administration/webhooks/
 
-### SpecFlowXML.js
-This is a parser for Tricents SpecFlow product TRX XML result files.  It does not support HTML report output.
+### SpecflowTRX.js
+This is a parser for legacy Tricents SpecFlow product TRX result files.  It does not support HTML report output, nor does it support the new XML output from later versions of SpecFlow.
 
 ### TestNGXML.js
 This is a parser for TestNG XML results files.  It does not support Extent HTML reports.
