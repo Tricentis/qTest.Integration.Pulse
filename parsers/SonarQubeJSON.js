@@ -13,7 +13,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         var projectId = payload.projectId;
         var cycleId = payload.testcycle;
 
-        let testResults = JSON.parse(Buffer.from(payload.result, 'base64').toString('ascii'));
+        let testResults = payload.result;
 
         var testLogs = [];
 
@@ -24,7 +24,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         testResults.qualityGate.conditions.forEach(function(condition) {
             TCStatus = "PASS"; // NOTE: that the automation settings must be mapped with passed vs the default PASS
             var reportingLog = {
-                exe_start_date: testResults.analysedAt, // TODO These could be passed in
+                exe_start_date: testResults.analysedAt,
                 exe_end_date: testResults.changedAt,
                 module_names: [
                     moduleName
