@@ -17,7 +17,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
 
     var standardHeaders = {
         'Content-Type': 'application/json',
-        'Authorization': `bearer ${constants.QtestToken}`,
+        'Authorization': `bearer ${constants.QTEST_TOKEN}`,
         'x-scenario-project-id': constants.ScenarioProjectID
     }
 
