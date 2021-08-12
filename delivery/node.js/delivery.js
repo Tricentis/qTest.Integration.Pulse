@@ -56,7 +56,7 @@ const main = async () => {
         console.log('=== error: ', e.stack, ' ===');
     }
     
-    let buff = new Buffer(result);
+    let buff = new Buffer.from(result);
     let base64data = buff.toString('base64');
     
     var opts = {
