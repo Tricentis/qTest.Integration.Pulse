@@ -84,7 +84,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
 
     function createLogsAndTCs() {
         var opts = {
-            url: 'http://' + constants.ManagerURL + '/api/v3/projects/' + projectId + '/auto-test-logs?type=automation',
+            url: 'https://' + constants.ManagerURL + '/api/v3/projects/' + projectId + '/auto-test-logs?type=automation',
             json: true,
             headers: standardHeaders,
             body: {
