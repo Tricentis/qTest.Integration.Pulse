@@ -1,0 +1,67 @@
+{
+    "constants": [
+        {
+            "id": "constant-1",
+            "name": "ProjectID",
+            "hidden": false,
+            "value": ""
+        },
+        {
+            "id": "constant-2",
+            "name": "QTEST_TOKEN",
+            "hidden": false,
+            "value": ""
+        },
+        {
+            "id": "constant-3",
+            "name": "ManagerURL",
+            "hidden": false,
+            "value": ""
+        },
+        {
+            "id": "constant-4",
+            "name": "ParentID",
+            "hidden": false,
+            "value": ""
+        },
+        {
+            "id": "constant-5",
+            "name": "DescriptionFieldID",
+            "hidden": false,
+            "value": ""
+        },
+        {
+            "id": "constant-6",
+            "name": "AllowCreationOnUpdate",
+            "hidden": false,
+            "value": "false"
+        }
+
+    ],
+    "actions": [
+        {
+            "id": "action-1",
+            "name": "SyncRequirementFromAzureDevopsWorkItem",
+            "description": null,
+            "code": "const PulseSdk = require(\"@qasymphony/pulse-sdk\");\nconst request = require(\"request\");\nconst xml2js = require(\"xml2js\");\n\n// DO NOT EDIT exported \"handler\" function is the entrypoint\nexports.handler = async function ({ event, constants, triggers }, context, callback) {\n    function buildRequirementDescription(eventData) {\n        const fields = getFields(eventData);\n        return `<a href=\"${eventData.resource._links.html.href}\" target=\"_blank\">Open in Azure DevOps</a><br>\n<b>Type:</b> ${fields[\"System.WorkItemType\"]}<br>\n<b>Area:</b> ${fields[\"System.AreaPath\"]}<br>\n<b>Iteration:</b> ${fields[\"System.IterationPath\"]}<br>\n<b>State:</b> ${fields[\"System.State\"]}<br>\n<b>Reason:</b> ${fields[\"System.Reason\"]}<br>\n<b>Description:</b> ${fields[\"System.Description\"] || \"\"}`;\n    }\n\n    function buildRequirementName(namePrefix, eventData) {\n        const fields = getFields(eventData);\n        return `${namePrefix}${fields[\"System.Title\"]}`;\n    }\n\n    function getFields(eventData) {\n        // In case of update the fields can be taken from the revision, in case of create from the resource directly\n        return eventData.resource.revision ? eventData.resource.revision.fields : eventData.resource.fields;\n    }\n\n    const standardHeaders = {\n        \"Content-Type\": \"application/json\",\n        Authorization: `bearer ${constants.QTEST_TOKEN}`,\n    };\n    const eventType = {\n        CREATED: \"workitem.created\",\n        UPDATED: \"workitem.updated\",\n        DELETED: \"workitem.deleted\",\n    };\n\n    let workItemId = undefined;\n    let requirementToUpdate = undefined;\n    switch (event.eventType) {\n        case eventType.CREATED: {\n            workItemId = event.resource.id;\n            console.log(`[Info] Create workitem event received for 'WI${workItemId}'`);\n            break;\n        }\n        case eventType.UPDATED: {\n            workItemId = event.resource.workItemId;\n            console.log(`[Info] Update workitem event received for 'WI${workItemId}'`);\n            const getReqResult = await getRequirementByWorkItemId(workItemId);\n            if (getReqResult.failed) {\n                return;\n            }\n            if (getReqResult.requirement === undefined && !constants.AllowCreationOnUpdate) {\n                console.log(\"[Info] Creation of Requirement on update event not enabled. Exiting.\");\n                return;\n            }\n            requirementToUpdate = getReqResult.requirement;\n            break;\n        }\n        case eventType.DELETED: {\n            workItemId = event.resource.id;\n            console.log(`[Info] Delete workitem event received for 'WI${workItemId}'`);\n            const getReqResult = await getRequirementByWorkItemId(workItemId);\n            if (getReqResult.failed) {\n                return;\n            }\n            if (getReqResult.requirement === undefined) {\n                console.log(`[Info] Requirement not found to delete. Exiting.`);\n                return;\n            }\n            // Delete requirement and finish\n            await deleteRequirement(getReqResult.requirement);\n            return;\n        }\n        default:\n            console.log(`[Error] Unknown workitem event type '${event.eventType}' for 'WI${workitemId}'`);\n            return;\n    }\n\n    // Prepare data to create/update requirement\n    const namePrefix = getNamePrefix(workItemId);\n    const requirementDescription = buildRequirementDescription(event);\n    const requirementName = buildRequirementName(namePrefix, event);\n\n    if (requirementToUpdate) {\n        await updateRequirement(requirementToUpdate, requirementName, requirementDescription);\n    } else {\n        createRequirement(requirementName, requirementDescription);\n    }\n\n    function getNamePrefix(workItemId) {\n        return `WI${workItemId}: `;\n    }\n\n    async function getRequirementByWorkItemId(workItemId) {\n        const prefix = getNamePrefix(workItemId);\n        const url = \"https://\" + constants.ManagerURL + \"/api/v3/projects/\" + constants.ProjectID + \"/search\";\n        const requestBody = {\n            object_type: \"requirements\",\n            fields: [\"*\"],\n            query: \"Name ~ '\" + prefix + \"'\",\n        };\n\n        console.log(`[Info] Get existing requirement for 'WI${workItemId}'`);\n        let failed = false;\n        let requirement = undefined;\n\n        try {\n            const response = await post(url, requestBody);\n            console.log(response);\n\n            if (!response || response.total === 0) {\n                console.log(\"[Info] Requirement not found by work item id.\");\n            } else {\n                if (response.total === 1) {\n                    requirement = response.items[0];\n                } else {\n                    failed = true;\n                    console.log(\"[Warn] Multiple Requirements found by work item id.\");\n                }\n            }\n        } catch (error) {\n            console.log(\"[Error] Failed to get requirement by work item id.\", error);\n            failed = true;\n        }\n\n        return { failed: failed, requirement: requirement };\n    }\n\n    async function updateRequirement(requirementToUpdate, name, description) {\n        const requirementId = requirementToUpdate.id;\n        const url = `https://${constants.ManagerURL}/api/v3/projects/${constants.ProjectID}/requirements/${requirementId}`;\n        const requestBody = {\n            name: name,\n            properties: [\n                {\n                    field_id: constants.DescriptionFieldID,\n                    field_value: description,\n                },\n            ],\n        };\n\n        console.log(`[Info] Updating requirement '${requirementId}'.`);\n\n        try {\n            await put(url, requestBody);\n            console.log(`[Info] Requirement '${requirementId}' updated.`);\n        } catch (error) {\n            console.log(`[Error] Failed to update requirement '${requirementId}'.`, error);\n        }\n    }\n\n    async function createRequirement(name, description) {\n        const url = `https://${constants.ManagerURL}/api/v3/projects/${constants.ProjectID}/requirements`;\n        const requestBody = {\n            name: name,\n            parent_id: constants.ParentID,\n            properties: [\n                {\n                    field_id: constants.DescriptionFieldID,\n                    field_value: description,\n                },\n            ],\n        };\n\n        console.log(`[Info] Creating requirement.`);\n\n        try {\n            await post(url, requestBody);\n            console.log(`[Info] Requirement created.`);\n        } catch (error) {\n            console.log(`[Error] Failed to create requirement`, error);\n        }\n    }\n\n    async function deleteRequirement(requirementToDelete) {\n        const requirementId = requirementToDelete.id;\n        const url = `https://${constants.ManagerURL}/api/v3/projects/${constants.ProjectID}/requirements/${requirementId}`;\n\n        console.log(`[Info] Deleting requirement '${requirementId}'.`);\n\n        try {\n            await doRequest(url, \"DELETE\", null);\n            console.log(`[Info] Requirement '${requirementId}' deleted.`);\n        } catch (error) {\n            console.log(`[Error] Failed to delete requirement '${requirementId}'.`, error);\n        }\n    }\n\n    function post(url, requestBody) {\n        return doRequest(url, \"POST\", requestBody);\n    }\n\n    function put(url, requestBody) {\n        return doRequest(url, \"PUT\", requestBody);\n    }\n\n    async function doRequest(url, method, requestBody) {\n        const opts = {\n            url: url,\n            json: true,\n            headers: standardHeaders,\n            body: requestBody,\n            method: method,\n        };\n\n        return new Promise((resolve, reject) => {\n            request(opts, function (error, response, body) {\n                if (error) reject(error);\n                if (response.statusCode < 200 || response.statusCode >= 300) reject(`HTTP ${response.statusCode}`);\n\n                resolve(body);\n            });\n        });\n    }\n};\n"
+        }
+    ],
+    "triggers": [
+        {
+            "id": "trigger-1",
+            "name": "AzureDevopsWorkItemForRequirementCreatedUpdatedDeleted"
+        }
+    ],
+    "rules": [
+        {
+            "id": "rule-1",
+            "name": "AzureDevopsWorkItemToRequirementSync",
+            "active": true,
+            "triggerId": "trigger-1",
+            "actionIds": [
+                "action-1"
+            ],
+            "tags": []
+        }
+    ]
+}
