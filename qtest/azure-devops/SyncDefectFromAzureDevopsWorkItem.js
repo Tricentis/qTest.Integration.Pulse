@@ -183,8 +183,15 @@ ${htmlToPlainText(fields["Microsoft.VSTS.Common.AcceptanceCriteria"])}`;
 
         return new Promise((resolve, reject) => {
             request(opts, function (error, response, body) {
-                if (error) reject(error);
-                if (response.statusCode < 200 || response.statusCode >= 300) reject(`HTTP ${response.statusCode}`);
+                if (error) {
+                    reject(error);
+                    return;
+                }
+
+                if (response.statusCode < 200 || response.statusCode >= 300) {
+                    reject(`HTTP ${response.statusCode}`);
+                    return;
+                }
 
                 resolve(body);
             });
