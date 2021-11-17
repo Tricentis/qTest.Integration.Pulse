@@ -1,6 +1,6 @@
 # Azure DevOps - qTest synchronization with PULSE rules
 
-Synchronizes Azure DevOps work items with qTest requirements and defects.
+Synchronizes Azure DevOps work items with qTest requirements and defects. In preview for Tricentis qTest customers.
 
 ## Features
 
