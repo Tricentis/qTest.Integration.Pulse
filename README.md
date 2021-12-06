@@ -7,8 +7,8 @@ Repository of open-source qTest Pulse rules powered by the community.  [What is 
 
 * These rules standardize Base64 Encoding the results payload to the parser endpoint for security and compatibility.
 * These rules utilize standardized nomenclature for variables, Constants, and certain Triggers.
-* The stock rules in the [Pulse v9.1 repository](https://github.com/QASymphony/PulseRules_v9.1) mentioned by the documentation are NOT compatible with the rules in this respository due to the above updated standards and nomenclatures.
-* qtest Pulse and qTest Launch Universal Agent parsers use different API endpoints and thus are NOT compatible.
+* The stock rules in the [Pulse v9.1 repository](https://github.com/QASymphony/PulseRules_v9.1) mentioned by the documentation are NOT compatible with the rules in this repository due to the above updated standards and nomenclatures.
+* qTest Pulse and qTest Launch Universal Agent parsers use different API endpoints and thus are NOT compatible.
 
 ## How It Works
 
@@ -23,7 +23,7 @@ Repository of open-source qTest Pulse rules powered by the community.  [What is 
 
 ## Getting Started
 
-For a BDD workflow, please review the [Pulse documentation](https://documentation.tricentis.com/qtest/od/en/content/qtest_pulse/user_guides/qtest_pulse_9.1+_quick_start_guide.htm) for examples of how to set up a workflow and use Constants.  Please bear in mind that the stock rules in the [Pulse v9.1 repository](https://github.com/QASymphony/PulseRules_v9.1) mentioned by the Pulse documentation are NOT compatible with the rules in this respository due to updated standards and nomenclatures.
+For a BDD workflow, please review the [Pulse documentation](https://support-hub.tricentis.com/open?id=manual&lang=en&path=%2Fqtest%2F10500%2Fen%2Fcontent%2Fpulse%2Fqtest_pulse_quick_start_guide.htm&product=qtest&sessionRotationTrigger=false&type=product_manual) for examples of how to set up a workflow and use Constants.  Please bear in mind that the stock rules in the [Pulse v9.1 repository](https://github.com/QASymphony/PulseRules_v9.1) mentioned by the Pulse documentation are NOT compatible with the rules in this repository due to updated standards and nomenclatures.
 
 For a webinar that features a live demonstration of the above workflow, please go [here](https://www.tricentis.com/resources/improve-quality-in-devops-pipelines-with-agile-test-management/).
 
