@@ -21,6 +21,15 @@ const req = async module => {
   }
 }
 
+const formatSizeUnits = async (bytes) => {
+    if (bytes > 0) {
+        bytes = (bytes / 1048576).toFixed(4); 
+    } else {
+        bytes = 0;
+    }
+    return bytes;
+}
+
 const main = async () => {
 
     const { execSync } = await req("child_process");
@@ -58,25 +67,40 @@ const main = async () => {
     
     let buff = new Buffer.from(result);
     let base64data = buff.toString('base64');
-    
+
+    let payloadBody = {
+            'projectId': projectId,
+            'testcycle': cycleId,
+            'result': base64data
+        };
+
+    let bufferSize = await formatSizeUnits(Buffer.byteLength(JSON.stringify(payloadBody), 'ascii'));
+
+    console.log('=== info: payload size is ' + bufferSize + ' MB ===');
+    if (bufferSize > 50) {
+        console.log('=== error: payload size is greater than 50 MB cap, exiting ===');
+        process.exit();
+    }
+
+    // establish the options for the webhook post to Pulse parser
     var opts = {
         url: pulseUri,
         json: true,
-        body: {
-            projectId: projectId,
-            testcycle: cycleId,
-            result: base64data
-        }
+        body: payloadBody
     };
     
     console.log(`=== uploading results... ===`)
     return request.post(opts, function (err, response, resbody) {
         if (err) {
+            console.log('=== error: ' + err + ' ===');
             Promise.reject(err);
         }
         else {
             //console.log(response);
             //console.log(resbody);
+            for (r = 0; r < response.body.length; r++) {
+                console.log('=== status: ' + response.body[r].status + ', execution id: ' + response.body[r].id + ' ===');
+            }
             Promise.resolve("Uploaded results successfully.");
         }
     });
