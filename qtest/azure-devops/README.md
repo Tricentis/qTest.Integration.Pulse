@@ -121,7 +121,7 @@ E.g. if you see the URL `https://xxx.qtestnet.com/p/123456/portal/project#tab=re
 
 ### Constant "RequirementDescriptionFieldID"
 
-The id of the "Description" field of the Requirement in your qTest project where the work item details will be synchronized to.
+The id of the "Description" field of the Requirement in your qTest project where the work item details will be synchronized to. To get this value the Field API (/api/v3/fields/requirements) needs to be called. 
 
 ### Constant "AllowCreationOnUpdate"
 
@@ -144,11 +144,11 @@ The URL has to have the form `https://dev.azure.com/[YOUR AZDO ORGANIZATION]/[YO
 
 ### Constant "DefectSummaryFieldID"
 
-The id of the "Summary" field of the Defect in your qTest project where the work item details of Bugs will be synchronized to.
+The id of the "Summary" field of the Defect in your qTest project where the work item details of Bugs will be synchronized to. To get this value the Field API (/api/v3/fields/defects) needs to be called. 
 
 ### Constant "DefectDescriptionFieldID"
 
-The id of the "Description" field of the Defect in your qTest project where the work item details of Bugs will be synchronized to.
+The id of the "Description" field of the Defect in your qTest project where the work item details of Bugs will be synchronized to. To get this value the Field API (/api/v3/fields/defects) needs to be called. 
 
 ## Limitations
 
