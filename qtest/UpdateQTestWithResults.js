@@ -46,7 +46,7 @@
  * constants:
  *  QTEST_TOKEN: the qTest user bearer token from the API/SDK section of the 'Resources' area
         Ex. 02e74731-2f6e-4b95-b928-1596a68881e2
- *  Manager_URL: the base qTest Manager domain with no protocol information, https is expected by the script
+ *  ManagerURL: the base qTest Manager domain with no protocol information, https is expected by the script
         Ex. demo.qtestnet.com
  * outputs: standardized construct to be consumed by the qTest auto-test-logs API
  * external documentation: https://api.qasymphony.com/#/test-log/submitAutomationTestLogs2

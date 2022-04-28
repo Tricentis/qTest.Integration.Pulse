@@ -1,8 +1,8 @@
 const ScenarioSdk = require('@qasymphony/scenario-sdk');
 
 const StepSdk = {
-    getStepSdk(qtestToken, scenarioProjectId) {
-        return new ScenarioSdk.Steps({ qtestToken, scenarioProjectId });
+    getStepSdk(qtestToken, scenarioProjectId, scenarioURL) {
+        return new ScenarioSdk.Steps({ qtestToken, scenarioProjectId, scenarioURL });
     }
 }
 
@@ -20,7 +20,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
     var payload = body;
     var testLogs = payload.logs;
 
-    stepSdk = StepSdk.getStepSdk(constants.QTEST_TOKEN, constants.SCENARIO_PROJECT_ID);
+    stepSdk = StepSdk.getStepSdk(constants.QTEST_TOKEN, constants.ScenarioProjectID, constants.ScenarioURL);
     
     for (var res of testLogs) {
         for (var step of res["test_step_logs"]) {
