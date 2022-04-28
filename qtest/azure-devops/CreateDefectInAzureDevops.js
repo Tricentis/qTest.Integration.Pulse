@@ -45,13 +45,13 @@ exports.handler = async function ({ event, constants, triggers }, context, callb
 
     async function getDefectDetailsByIdWithRetry(defectId) {
         let defectDetails = undefined;
-        let delay = 3000;
+        let delay = 5000;
         let attempt = 0;
         do {
             if (attempt > 0) {
                 console.log(`[Warn] Could not get defect details on attempt ${attempt}. Waiting ${delay} ms.`);
                 await new Promise((r) => setTimeout(r, delay));
-                delay *= 3;
+                //delay *= 3;
             }
 
             defectDetails = await getDefectDetailsById(defectId);
@@ -59,7 +59,7 @@ exports.handler = async function ({ event, constants, triggers }, context, callb
             if (defectDetails && defectDetails.summary && defectDetails.description) return defectDetails;
 
             attempt++;
-        } while (attempt < 6);
+        } while (attempt < 12);
 
         console.log(`[Error] Could not get defect details. Giving up.`);
     }
