@@ -59,7 +59,7 @@ exports.handler = async function ({ event, constants, triggers }, context, callb
             if (defectDetails && defectDetails.summary && defectDetails.description) return defectDetails;
 
             attempt++;
-        } while (attempt < 20);
+        } while (attempt < 12);
 
         console.log(`[Error] Could not get defect details. Giving up.`);
     }
