@@ -121,7 +121,7 @@ E.g. if you see the URL `https://xxx.qtestnet.com/p/123456/portal/project#tab=re
 
 ### Constant "RequirementDescriptionFieldID"
 
-The id of the "Description" field of the Requirement in your qTest project where the work item details will be synchronized to. To get this value the Field API (/api/v3/fields/requirements) needs to be called. 
+The id of the "Description" field of the Requirement in your qTest project where the work item details will be synchronized to. To get this value the Field API (/api/v3/projects/{Your Project ID}/settings/requirements/fields) needs to be called. 
 
 ### Constant "AllowCreationOnUpdate"
 
