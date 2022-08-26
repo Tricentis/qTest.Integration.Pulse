@@ -20,7 +20,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
     var payload = body;
     var testLogs = payload.logs;
 
-    stepSdk = StepSdk.getStepSdk(constants.QTEST_TOKEN, constants.ScenarioProjectID, constants.ScenarioURL);
+    stepSdk = StepSdk.getStepSdk(constants.QTEST_TOKEN, constants.ScenarioProjectID, constants.Scenario_URL);
     
     for (var res of testLogs) {
         for (var step of res["test_step_logs"]) {
