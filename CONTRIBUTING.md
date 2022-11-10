@@ -16,7 +16,7 @@ tracker  will be used to hash that all out.
 
 Style Guides
 -------------------
-1. Write in UTF-8 in node.js 10.16.0 LTS
+1. Write in UTF-8 in node.js 12.15.0 LTS
 2. Use modular architecture to group similar functions, classes, etc.
 3. Always use 4 spaces for indentation (don't use tabs)
 4. Variable names should always be camelCase (WIP to standardize)
