@@ -84,7 +84,7 @@ Create web hooks in Azure DevOps to synchronize Product Backlog Items to qTest R
 
 ### Constant "QTEST_TOKEN"
 
-A valid qTest access token.
+A valid qTest access Bearer token (just the token without "Bearer").
 
 The queries and modifications in qTest will be performed on behalf of the user owning the token. It's a good practice to create a "service user" in qTest for this purpose to separate the changes performed by the synchronization from the changes of normal qTest users.
 Please follow [these steps](https://documentation.tricentis.com/qtest/od/en/content/pulse/constants/pulse_constants.htm#qTestAPIToken) to get the access token value from qTest Manager.
