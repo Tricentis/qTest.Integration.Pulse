@@ -10,7 +10,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
     var projectId = payload.projectId;
     var cycleId = payload.testcycle;
 
-    let testResults = JSON.parse(Buffer.from(payload.result, 'base64').toString('ascii'));
+    let testResults = JSON.parse(Buffer.from(payload.result, 'base64').toString('utf8'));
 
     var collectionName = testResults.collection.info.name;
     var testLogs = [];

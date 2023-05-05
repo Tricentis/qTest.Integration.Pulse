@@ -20,7 +20,7 @@ exports.handler = function({
         var cycleId = payload.testcycle;
         var testLogs = [];
 
-        let testResults = Buffer.from(payload.result, 'base64').toString('ascii');
+        let testResults = Buffer.from(payload.result, 'base64').toString('utf8');
 
         xml2js.parseString(testResults, {
                 preserveChildrenOrder: true,

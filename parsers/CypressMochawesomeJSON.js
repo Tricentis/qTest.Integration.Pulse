@@ -15,7 +15,7 @@ exports.handler = async function({
     var projectId = payload.projectId;
     var cycleId = payload.testcycle;
 
-    let testResults = JSON.parse(Buffer.from(payload.result, 'base64').toString('ascii'));
+    let testResults = JSON.parse(Buffer.from(payload.result, 'base64').toString('utf8'));
 
     var testLogs = [];
 

@@ -13,7 +13,7 @@ exports.handler = async function({ event: body, constants, triggers }, context, 
     var projectId = payload.projectId;
     var testcycle = payload.testcycle;
 
-    let testResults = Buffer.from(payload.result, 'base64').toString('ascii');
+    let testResults = Buffer.from(payload.result, 'base64').toString('utf8');
 
     var testLogs = [];
     var timestamp = new Date();

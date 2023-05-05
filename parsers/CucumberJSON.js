@@ -33,7 +33,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
 
     let data = payload.result;
     let buffer = new Buffer(data, 'base64');
-    let testResults = JSON.parse(buffer.toString('ascii'));
+    let testResults = JSON.parse(buffer.toString('utf8'));
 
     var testLogs = [];
     console.log("TEST RESULTS: " + JSON.stringify(testResults));

@@ -14,7 +14,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         var cycleId = payload.testcycle;
         var testLogs = [];
 
-        let testResults = Buffer.from(payload.result, 'base64').toString('ascii');
+        let testResults = Buffer.from(payload.result, 'base64').toString('utf8');
 
         var suiteName = "";
         var testLogs = [];

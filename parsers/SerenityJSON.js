@@ -221,7 +221,7 @@ const flatMap = (f, xs) => xs.map(f).reduce(concat, []);
   const projectId = payload.projectId;
   const cycleId = payload.testcycle;
 
-  let testResults = JSON.parse(Buffer.from(payload.result, 'base64').toString('ascii'));
+  let testResults = JSON.parse(Buffer.from(payload.result, 'base64').toString('utf8'));
 
   testResults = flatMap(splitExamples, testResults);
   const testLogs = testResults.map(processTestResult);
