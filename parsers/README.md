@@ -13,10 +13,7 @@ This parser will consume XML results from the Allure framework.  All items marke
 This parser will consume XML results from the Allure framework, but at a higher level.  All items marked as test cases in the results file will be marked as test STEPS in qTest.  Use this if your framework outputs test steps as individual test cases.
 
 ### CucumberJSON.js
-This is a parser for Cucumber for Java 4.0+ JSON result files.  Earlier versions of Cucumber need to use the Legacy parser.  Required for the qTest Scenario workflow.
-
-### CucumberLegacyJSON.js
-This is a parser for Cucumber for Java versions prior to 4.0 JSON result files.  This is not compatible with Cucumber 4.0+.  You should probably upgrade.
+This is a parser for Cucumber for Java 4.0+ JSON result files.  Required for the qTest Scenario workflow.
 
 ### CypressMochawesome.js
 This parser consumes JSON results from the Cypress.io Mochawesome frameworks.  Ship the consolidated 'report.json' file to this parser.
