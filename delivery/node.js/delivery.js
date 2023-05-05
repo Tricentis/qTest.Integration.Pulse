@@ -74,7 +74,7 @@ const main = async () => {
             'result': base64data
         };
 
-    let bufferSize = await formatSizeUnits(Buffer.byteLength(JSON.stringify(payloadBody), 'ascii'));
+    let bufferSize = await formatSizeUnits(Buffer.byteLength(JSON.stringify(payloadBody), 'utf8'));
 
     console.log('=== info: payload size is ' + bufferSize + ' MB ===');
     if (bufferSize > 50) {
