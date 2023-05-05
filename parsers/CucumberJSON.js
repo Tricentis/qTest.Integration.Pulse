@@ -31,12 +31,12 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
     var projectId = payload.projectId;
     var cycleId = payload.testcycle;
 
-    let testResults = JSON.parse(Buffer.from(payload.result, 'base64').toString('ascii'));
+    let data = payload.result;
+    let buffer = new Buffer(data, 'base64');
+    let testResults = JSON.parse(buffer.toString('ascii'));
 
     var testLogs = [];
-    //console.log("TEST RESULTS: " + testResults);
-
-    //emitEvent('ChatOpsEvent', { TESTRESULTS: testResults });
+    console.log("TEST RESULTS: " + JSON.stringify(testResults));
 
     testResults.forEach(function (feature) {
         var featureName = feature.name;
@@ -63,57 +63,60 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
             attachments = [];
 
             testCase.steps.forEach(function (step) {
-                stepNames.push(step.name);
+                // if the name is empty, as in the case of "Before" and "After" keywords, skip the step
+                if(step.name !== "") { 
+                    stepNames.push(step.name);
 
-                var status = step.result.status;
-                var actual = step.name;
+                    var status = step.result.status;
+                    var actual = step.name;
 
-                if (TCStatus == "passed" && status == "skipped") {
-                    TCStatus = "skipped";
+                    if (TCStatus == "passed" && status == "skipped") {
+                        TCStatus = "skipped";
+                    }
+                    if (status == "failed") {
+                        TCStatus = "failed";
+                        actual = step.result.error_message;
+                    }
+                    if (status == "undefined") {
+                        TCStatus = "skipped";
+                        status = "skipped";                    
+                        emitEvent('ChatOpsEvent', { message: "Step result not found: " + step.name + "; marking as skipped." });
+                    }
+
+                    // Are there an attachment for this step?
+                    if ("embeddings" in step) {
+                        console.log("Has attachment");
+
+                        attCount = 0;
+                        step.embeddings.forEach(function (att) {
+                            attCount++;
+                            var attachment = {
+                                name: step.name + " Attachment " + attCount,
+                                "content_type": att.mime_type,
+                                data: att.data
+                            };
+                            console.log("Attachment: " + attachment.name)
+
+                            attachments.push(attachment);
+                        });
+                    }
+
+                    var expected = step.keyword + " " + step.name;
+
+                    if ("location" in step.match) {
+                        expected = step.match.location;
+                    }
+
+                    var stepLog = {
+                        order: order,
+                        description: step.keyword + ' ' + step.name,
+                        expected_result: step.name,
+                        actual_result: actual,
+                        status: status
+                    };
+
+                    testStepLogs.push(stepLog);
                 }
-                if (status == "failed") {
-                    TCStatus = "failed";
-                    actual = step.result.error_message;
-                }
-                if (status == "undefined") {
-                    TCStatus = "incomplete";
-                    status = "incomplete";                    
-                    emitEvent('ChatOpsEvent', { message: "Step result not found: " + step.name + "; marking as incomplete." });
-                }
-
-                // Are there an attachment for this step?
-                if ("embeddings" in step) {
-                    console.log("Has attachment");
-
-                    attCount = 0;
-                    step.embeddings.forEach(function (att) {
-                        attCount++;
-                        var attachment = {
-                            name: step.name + " Attachment " + attCount,
-                            "content_type": att.mime_type,
-                            data: att.data
-                        };
-                        console.log("Attachment: " + attachment.name)
-
-                        attachments.push(attachment);
-                    });
-                }
-
-                var expected = step.keyword + " " + step.name;
-
-                if ("location" in step.match) {
-                    expected = step.match.location;
-                }
-
-                var stepLog = {
-                    order: order,
-                    description: step.keyword + ' ' + step.name,
-                    expected_result: step.name,
-                    actual_result: actual,
-                    status: status
-                };
-
-                testStepLogs.push(stepLog);
                 order++;
             });
 
@@ -132,6 +135,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         "logs": testLogs
     };
 
+    emitEvent('ChatOpsEvent', { message: "FormatJavaCucumber success" });
     emitEvent('UpdateQTestWithFormattedResults', formattedResults);
 
 }
