@@ -71,6 +71,9 @@ Create web hooks in Azure DevOps to synchronize Product Backlog Items to qTest R
         "url": "<URL of the Pulse trigger `qTestDefectSubmitted`>", //REPLACE
         "events": ["defect_submitted"],
         "responseType": "json",
+        "projectIds": [
+            0
+        ],
         "secretKey": "<some secret value>" //REPLACE
     }
     ```
@@ -108,7 +111,7 @@ E.g. if you see the URL `https://xxx.qtestnet.com/p/123456/portal/project` in th
 
 ### Constant "RequirementParentID"
 
-The id of the parent module in the qTest requirements hierarchy where the Azure DevOps work items will be synchronized to as Requirements.
+The id of the parent module in the qTest requirements hierarchy where the Azure DevOps work items will be synchronized to as Requirements. All work items will be created as flat requirements in qTest under the parent module.
 
 You can create a new module in qTest Manager in the requirement hierarchy (e.g. "Azure DevOps") or you can select an existing module in the tree.
 
