@@ -29,6 +29,7 @@ Body:
 
 3 - take all this code and put it in your action.
 4 - Create your constants
+5 - Create your rule and activate it.
 */
 
 /*
