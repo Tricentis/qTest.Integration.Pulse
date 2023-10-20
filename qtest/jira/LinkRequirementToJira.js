@@ -80,7 +80,7 @@ exports.handler = async function ({ event: qTestReq, constants, triggers }, cont
 
             console.log('ReqURL: ' + ReqURL + '\r\n');
             console.log('ReqName: ' + ReqName + '\r\n');
-            console.log('ReqPID: ' + ReqJiraID + '\r\n');
+            console.log('ReqPID: ' + ReqPID + '\r\n');
             console.log('ReqJiraID: ' + ReqJiraID + '\r\n');
 
 
