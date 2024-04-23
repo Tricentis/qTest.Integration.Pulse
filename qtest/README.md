@@ -1,7 +1,10 @@
 ## Basic qTest Integrations
 
 ### UpdateQTestWithResults.js
-This is the standard results delivery rule for use by ALL OOTB framework parsers in Pulse.  It uses the auto-test-logs endpoint to bulk upload test cases, test runs, and test logs to qTest Manager. In the qTest Scenario BDD workflow, it also attempts to tie requirements to test case if the names match.
+This is the standard results delivery rule for use by ALL OOTB framework parsers in Pulse.  It uses the v3 auto-test-logs endpoint to bulk upload test cases, test runs, and test logs to qTest Manager. In the qTest Scenario BDD workflow, it also attempts to tie requirements to test case if the names match.
+
+### CheckProcessingQueue.js
+This is called after UpdateQTestWithResults above.  It will continuously check the processing queue status for submitted results until the queue is finished.  Also works with ChatOps integrations.
 
 
 ## Advanced qTest Integrations

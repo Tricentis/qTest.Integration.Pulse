@@ -12,19 +12,22 @@
  * external documentation: https://api.slack.com/incoming-webhooks 
  */
 
-exports.handler = function ({ event: body, constants, triggers }, context, callback) {
-    var str = body;
-    //console.log(str.message);
+const axios = require('axios');
 
-    var request = require('request');
-    var slack_webhook = constants.ChatOpsWebhook;
+exports.handler = function ({ event: body, constants, triggers }, context, callback) {
+
+    let slack_webhook = constants.ChatOpsWebhook;
 
     //console.log('About to request slack webhook: ', slack_webhook);
 
-    request({
-        uri: slack_webhook,
-        method: 'POST',
-        json: { "text": JSON.stringify(str) }
-    }, function (error, response, body) { }
-    );
+    axios.post(slack_webhook, { "text": body.message })
+        .then(response => {
+            // Handle success
+            //console.log(response.data);
+            console.log(`[INFO]: statusCode: ${response.status}`);
+        })
+        .catch(error => {
+            // Handle error
+            console.error('[ERROR]: Error sending request to Slack webhook:', error);
+        });
 }

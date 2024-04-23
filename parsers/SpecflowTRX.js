@@ -1,18 +1,11 @@
 // Format required: Microsoft SpecFlow .trx XML result files
-
-const PulseSdk = require('@qasymphony/pulse-sdk');
-const request = require('request');
 const xml2js = require('xml2js');
 const { Webhooks } = require('@qasymphony/pulse-sdk');
 
 exports.handler = function ({ event: body, constants, triggers }, context, callback) {
     function emitEvent(name, payload) {
-        let t = triggers.find(t => t.name === name);
-        return t && new Webhooks().invoke(t, payload);
+        return (t = triggers.find(t => t.name === name)) ? new Webhooks().invoke(t, payload) : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
     }
-
-        const xml2js = require("xml2js");
-
         var payload = body;
         var projectId = payload.projectId;
         var cycleId = payload.testcycle;

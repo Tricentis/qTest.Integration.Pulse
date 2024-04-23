@@ -5,8 +5,7 @@ const { Webhooks } = require('@qasymphony/pulse-sdk');
 
 exports.handler = function ({ event: body, constants, triggers }, context, callback) {
     function emitEvent(name, payload) {
-        let t = triggers.find(t => t.name === name);
-        return t && new Webhooks().invoke(t, payload);
+        return (t = triggers.find(t => t.name === name)) ? new Webhooks().invoke(t, payload) : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
     }
                 
         var payload = body;

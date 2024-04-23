@@ -1,31 +1,29 @@
+const axios = require('axios');
+
 /**
- * trigger name: ChatOpsEvent
- * call source: other Pulse Actions via emitEvent()
- * payload example:
+ * Trigger name: ChatOpsEvent
+ * Call source: other Pulse Actions via emitEvent()
+ * Payload example:
  *   {
  *     "message": "insert message contents here"
  *   }
- * constants example:
+ * Constants example:
  *  ChatOpsWebhook: 84d46c6a-d39d-11e9-bb65-2a2ae2dbcce4
- * outputs:
- * - the "message" object in the payload will be sent to a configured Microsoft Teams webhook
- * prerequisites: configured webhook connector for Microsoft Teams
- * external documentation: https://docs.microsoft.com/en-us/microsoftteams/platform/concepts/connectors/connectors-using
+ * Outputs:
+ * - The "message" object in the payload will be sent to a configured Microsoft Teams webhook
+ * Prerequisites: configured webhook connector for Microsoft Teams
+ * External documentation: https://docs.microsoft.com/en-us/microsoftteams/platform/concepts/connectors/connectors-using
  */
 
-exports.handler = function ({ event: body, constants, triggers }, context, callback) {
-    var str = body;
-    //console.log(str.message);
+exports.handler = async function ({ event: body, constants, triggers }, context, callback) {
+    try {
+        const response = await axios.post(constants.ChatOpsWebhook, {
+            text: body.message
+        });
 
-    var request = require('request');
-    var teams_webhook = constants.ChatOpsWebhook;
-
-    //console.log('About to request MS Teams webhook: ', teams_webhook);
-
-    request({
-        uri: teams_webhook,
-        method: 'POST',
-        json: { "text": str.message }
-    }, function (error, response, body) { }
-    );
+        console.log(`[INFO]: statusCode: ${response.status}`);
+        //console.log(response.data);
+    } catch (error) {
+        console.error('[ERROR]: Error sending message to Microsoft Teams:', error);
+    }
 }

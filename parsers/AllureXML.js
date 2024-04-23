@@ -1,92 +1,73 @@
-const PulseSdk = require('@qasymphony/pulse-sdk');
-const request = require('request');
 const xml2js = require('xml2js');
-const {
-    Webhooks
-} = require('@qasymphony/pulse-sdk');
+const { Webhooks } = require('@qasymphony/pulse-sdk');
 
-exports.handler = function({
-        event: body,
-        constants,
-        triggers
-    }, context, callback) {
-        function emitEvent(name, payload) {
-            let t = triggers.find(t => t.name === name);
-            return t && new Webhooks().invoke(t, payload);
+exports.handler = function ({ event: body, constants, triggers }, context, callback) {
+    function emitEvent(name, payload) {
+        return (t = triggers.find(t => t.name === name)) ? new Webhooks().invoke(t, payload) : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
+    }
+
+    let { projectId, testcycle, result } = body;
+    let testLogs = [];
+
+    let testResults = Buffer.from(result, 'base64').toString('utf8');
+
+    xml2js.parseString(testResults, {
+        preserveChildrenOrder: true,
+        explicitArray: false,
+        explicitChildren: false
+    }, function (err, result) {
+        if (err) {
+            console.error('[ERROR]: Unexpected Error Parsing XML Document: ' + err);
+            return;
         }
 
-        var payload = body;
-        var projectId = payload.projectId;
-        var cycleId = payload.testcycle;
-        var testLogs = [];
+        let testSuiteName = result['ns2:test-suite'].name.trim();
+        let testCases = Array.isArray(result['ns2:test-suite']['test-cases']['test-case']) ? result['ns2:test-suite']['test-cases']['test-case'] : [result['ns2:test-suite']['test-cases']['test-case']];
 
-        let testResults = Buffer.from(payload.result, 'base64').toString('utf8');
+        testCases.forEach(function (testCase) {
+            let testSteps = [];
+            let { name: testCaseName, $: { start: testCaseStartDate, end: testCaseEndDate, status: testCaseStatus }, steps } = testCase;
+            console.log('[INFO]: Test Case: ' + testCaseName);
+            console.log('[INFO]: Test Case Status: ' + testCaseStatus);
 
-        xml2js.parseString(testResults, {
-                preserveChildrenOrder: true,
-                explicitArray: false,
-                explicitChildren: false
-            }, function(err, result) {
-                if (err) {
-                    //emitEvent('ChatOpsEvent', { message: "[ERROR]: Unexpected Error Parsing XML Document: " + err }); 
-                    console.log('[ERROR]: Unexpected Error Parsing XML Document: ' + err);
-                } else {
-                    console.log('[INFO]: XML converted to JSON: \n' + JSON.stringify(result));
-                    var testSuiteName = result['ns2:test-suite'].name.trim();
-                    var testCases = Array.isArray(result['ns2:test-suite']['test-cases']['test-case']) ? result['ns2:test-suite']['test-cases']['test-case'] : [result['ns2:test-suite']['test-cases']['test-case']];
+            let testCaseSteps = steps && steps.step ? (Array.isArray(steps.step) ? steps.step : [steps.step]) : [];
+            let stepNumber = 1;
 
-                    testCases.forEach(function(testCase) {
-        				var testSteps = [];
-	                    var testCaseName = testCase.name.trim();
-	                    console.log('[INFO]: Test Case: ' + testCaseName);
-	                    var testCaseStartDate = new Date(parseInt(testCase.$.start)).toISOString();
-	                    var testCaseEndDate = new Date(parseInt(testCase.$.start)).toISOString();
-	                    var testCaseStatus = testCase.$.status;
-	                    console.log('[INFO]: Test Case Status: ' + testCaseStatus);
+            testCaseSteps.forEach(function (testStep) {
+                console.log('[INFO]: Test Step ' + stepNumber + ': ' + testStep.name);
+                let testStepObj = {
+                    "description": testStep.name,
+                    "expected_result": testStep.name,
+                    "actual_result": testStep.name,
+                    "order": stepNumber,
+                    "status": testStep.$.status
+                };
 
-	                    var testCaseSteps = Array.isArray(testCase['steps']['step']) ? testCase['steps']['step'] : [testCase['steps']['step']];
-                    	var stepNumber = 1;
+                testSteps.push(testStepObj);
+                stepNumber++;
+            });
 
-	                    testCaseSteps.forEach(function(testStep) {	                    	
-	                    console.log('[INFO]: Test Step ' + stepNumber + ': ' + testStep.name);
-	                    	var testStep = {
-                                    "description": testStep.name,
-                                    "expected_result": testStep.name,
-                                    "actual_result": testStep.name,
-                                    "order": stepNumber,
-                                    "status": testStep.$.status
-                                };
+            let testLog = {
+                status: testCaseStatus,
+                name: testCaseName,
+                attachments: [],
+                exe_start_date: new Date(parseInt(testCaseStartDate)).toISOString(),
+                exe_end_date: new Date(parseInt(testCaseEndDate)).toISOString(),
+                automation_content: testCaseName,
+                module_names: [testSuiteName],
+                test_step_logs: testSteps
+            };
 
-	                    	testSteps.push(testStep);
-	                    	stepNumber++;
-	                    })
+            testLogs.push(testLog);
+        });
 
-	                    var testLog = {
-	                        status: testCaseStatus,
-	                        name: testCaseName,
-	                        attachments: [],
-	                        exe_start_date: testCaseStartDate,
-	                        exe_end_date: testCaseEndDate,
-	                        automation_content: testCaseName,
-	                        module_names: [testSuiteName],
-	                        test_step_logs: testSteps
-	                    };
+        let formattedResults = {
+            "projectId": projectId,
+            "testcycle": testcycle,
+            "logs": testLogs
+        };
 
-	                    testLogs.push(testLog);
-
-                    })
-
-                }
-
-            })
-
-	    var formattedResults = {
-	        "projectId": projectId,
-	        "testcycle": cycleId,
-	        "logs": testLogs
-	    };
-
-	    emitEvent('UpdateQTestWithFormattedResults', formattedResults);
-	    console.log('[INFO]: Results shipped to qTest.');
-
-    }
+        emitEvent('UpdateQTestWithFormattedResults', formattedResults);
+        console.log('[INFO]: Results shipped to qTest.');
+    });
+};

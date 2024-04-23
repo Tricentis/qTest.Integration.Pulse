@@ -1,68 +1,96 @@
-const PulseSdk = require('@qasymphony/pulse-sdk');
 const { Webhooks } = require('@qasymphony/pulse-sdk');
 
-// DO NOT EDIT exported "handler" function is the entrypoint
-exports.handler = async function({
-    event: body,
-    constants,
-    triggers
-}, context, callback) {
+/*
+ * call source: delivery script from CI Tool (Jenkins, Bamboo, TeamCity, CircleCI, etc), Launch, locally executed
+ *              see 'delivery' subdirectory in this repository
+ * payload example, Base64encoded:
+ * {
+ *   "projectId": "5",
+ *   "testcycle": "555555",
+ *   "result": {
+ *     "results": [
+ *       {
+ *         "suites": [
+ *           {
+ *             "tests": [
+ *               {
+ *                 "state": "passed",
+ *                 "title": "Test 1 Name",
+ *                 "uuid": "unique id"
+ *               }
+ *             ],
+ *             "title": "Suite 1 Title"
+ *           }
+ *         ]
+ *       }
+ *     ],
+ *     "stats": {
+ *       "start": "start date",
+ *       "end": "end date"
+ *     }
+ *   }
+ * }
+ * constants:
+ * - QTEST_TOKEN: the qTest user bearer token from the API/SDK section of the 'Resources' area
+ * outputs:
+ * - Results formatted into qTest test case format and added to the qTest project
+ * - Formatted result sent to the trigger "UpdateQTestWithResults"
+ * - ChatOpsEvent channel (if any) notified of the result or error
+ */
+exports.handler = async function({ event: body, constants, triggers }, context, callback) {
     function emitEvent(name, payload) {
-        let t = triggers.find(t => t.name === name);
-        return t && new Webhooks().invoke(t, payload);
+        return (t = triggers.find(t => t.name === name)) ? new Webhooks().invoke(t, payload) : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
     }
-    var payload = body;
-    var projectId = payload.projectId;
-    var cycleId = payload.testcycle;
 
-    let testResults = JSON.parse(Buffer.from(payload.result, 'base64').toString('utf8'));
+    try {
+        let payload = body;
+        let projectId = payload.projectId;
+        let cycleId = payload.testcycle;
 
-    var testLogs = [];
+        let testResults = JSON.parse(Buffer.from(payload.result, 'base64').toString('utf8'));
 
-    for (let r = 0, rlen = testResults.results.length; r < rlen; r++) {
-        let currentResult = testResults.results[r];
-        for (let s = 0, slen = currentResult.suites.length; s < slen; s++) {
-            let currentSuite = currentResult.suites[s];
-            for (let t = 0, tlen = currentSuite.tests.length; t < tlen; t++) {
-                let currentTest = currentSuite.tests[t];
-                var reportingLog = {
-                    status: currentTest.state,
-                    exe_start_date: testResults.stats.start,
-                    exe_end_date: testResults.stats.end,
-                    module_names: [
-                        currentSuite.title
-                    ],
-                    name: currentTest.title,
-                    automation_content: currentTest.uuid,
-                    properties: [],
-                    note: currentTest.state == 'failed' ? currentTest.err.estack : ''
-                };
+        let testLogs = [];
 
-                var testStepLogs = [];
+        for (let result of testResults.results) {
+            for (let suite of result.suites) {
+                for (let test of suite.tests) {
+                    let reportingLog = {
+                        status: test.state,
+                        exe_start_date: testResults.stats.start,
+                        exe_end_date: testResults.stats.end,
+                        module_names: [suite.title],
+                        name: test.title,
+                        automation_content: test.uuid,
+                        properties: [],
+                        note: test.state == 'failed' ? test.err.estack : ''
+                    };
 
-                var stepLog = {
-                    order: 1,
-                    description: currentTest.title,
-                    expected_result: currentTest.title,
-                    actual_result: currentTest.title,
-                    status: currentTest.state
-                };
+                    let testStepLogs = [{
+                        order: 1,
+                        description: test.title,
+                        expected_result: test.title,
+                        actual_result: test.title,
+                        status: test.state
+                    }];
 
-                testStepLogs.push(stepLog);
-
-                reportingLog.description = currentTest.code.replace('\\n', '<br />');
-                reportingLog.test_step_logs = testStepLogs;
-                reportingLog.featureName = currentSuite.title + '.feature';
-                testLogs.push(reportingLog);
+                    reportingLog.description = test.code.replace('\\n', '<br />');
+                    reportingLog.test_step_logs = testStepLogs;
+                    reportingLog.featureName = suite.title + '.feature';
+                    testLogs.push(reportingLog);
+                }
             }
         }
+
+        let formattedResults = {
+            "projectId": projectId,
+            "testcycle": cycleId,
+            "logs": testLogs
+        };
+
+        console.log('[INFO]: Cypress test successfully parsed.');
+        emitEvent('UpdateQTestWithResults', formattedResults);
+    } catch (error) {
+        emitEvent('ChatOpsEvent', { message: 'Error processing Cypress test results: ' + error });
+        console.error(`[ERROR]: Error processing Cypress test results: ${error}`);
     }
-
-    var formattedResults = {
-        "projectId": projectId,
-        "testcycle": cycleId,
-        "logs": testLogs
-    };
-
-    emitEvent('UpdateQTestWithFormattedResults', formattedResults);
-}
+};

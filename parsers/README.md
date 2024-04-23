@@ -9,9 +9,6 @@
 ### AllureXML.js
 This parser will consume XML results from the Allure framework.  All items marked as test cases in the results files will be marked as test cases in qTest.
 
-### AllureCustomXML.js
-This parser will consume XML results from the Allure framework, but at a higher level.  All items marked as test cases in the results file will be marked as test STEPS in qTest.  Use this if your framework outputs test steps as individual test cases.
-
 ### CucumberJSON.js
 This is a parser for Cucumber for Java 4.0+ JSON result files.  Required for the qTest Scenario workflow.
 
@@ -27,17 +24,11 @@ This parser is for NUnit XML result files.  It reports tests at the method level
 ### PostmanJSON.js
 This is a parser for Postman API endpoint test results output in JSON.  This is a more detailed parser than the one included with Launch, and thus not compatible with results already consumed by Launch.
 
-### QuerySurgeXML.js
-This is a parser for the XML output provided by the QuerySurge testing tool.
-
 ### ReadyAPIXML.js
 This is a parser for the XML output provided by the ReadyAPI testing tool.  Currently, expected results will be in a test suite and not individual tests.
 
 ### RobotXML.js
 This will parse XML results from the Robot Framework.  Currently, it is a high-level parser and will only work a single non-nested suite of results.
-
-### SerenityJSON.js
-This is a parser for the Serenity BDD XML format, a Cucumber derivative.  This parser has been submitted for public use by our friends at Specsavers UK.
 
 ### SonarQubeJSON.js
 This is a parser for the SonarQube JSON format for code quality and assurance.  Leverage the webhook calls in SonarQube, please see this article to configure and review the expected format: https://docs.sonarqube.org/latest/project-administration/webhooks/
@@ -49,4 +40,4 @@ This is a parser for legacy Tricents SpecFlow product TRX result files.  It does
 This is a parser for TestNG XML results files.  It does not support Extent HTML reports.
 
 ### ToscaXML.js
-This is a parser for Tricentis Tosca JUnit XML results files.  It parses the test steps from the non-standard plaintext tags inside the file.  It is not compatible with results already consumed by Launch and the built-in integration and is meant for CI Pipeline usage only via ToscaCI.  It is a work in progress and may require customization for your environment.
+This is a parser for Tricentis Tosca ToscaCI XML results files.  It parses the test steps from the non-standard plaintext tags inside the file.  It is not compatible with results already consumed by Launch or the native integration, and is meant for CI Pipeline usage only via ToscaCI.  It may require customization for your environment.

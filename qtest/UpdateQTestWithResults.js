@@ -57,11 +57,9 @@ const axios = require('axios');
 const { Webhooks } = require('@qasymphony/pulse-sdk');
 
 exports.handler = async function ({ event: body, constants, triggers }, context, callback) {
-    function emitEvent(name, payload) {
-        let t = triggers.find(t => t.name === name);
-        return t && new Webhooks().invoke(t, payload);
-    }
-
+  function emitEvent(name, payload) {
+    return (t = triggers.find(t => t.name === name)) ? new Webhooks().invoke(t, payload) : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
+  }
     let queueId = 0;
     
     console.log(`[INFO]: About to process ${body.logs.length} results...`);

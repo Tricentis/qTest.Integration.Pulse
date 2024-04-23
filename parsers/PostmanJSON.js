@@ -1,49 +1,44 @@
 const { Webhooks } = require('@qasymphony/pulse-sdk');
 
-exports.handler = function ({ event: body, constants, triggers }, context, callback) {
+exports.handler = function ({ event: body, triggers }, context, callback) {
     function emitEvent(name, payload) {
-        let t = triggers.find(t => t.name === name);
-        return t && new Webhooks().invoke(t, payload);
+        return (t = triggers.find(t => t.name === name)) ? new Webhooks().invoke(t, payload) : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
     }
 
-    var payload = body;
-    var projectId = payload.projectId;
-    var cycleId = payload.testcycle;
+    let payload = body;
+    let projectId = payload.projectId;
+    let cycleId = payload.testcycle;
 
     let testResults = JSON.parse(Buffer.from(payload.result, 'base64').toString('utf8'));
 
-    var collectionName = testResults.collection.info.name;
-    var testLogs = [];
+    let collectionName = testResults.collection.info.name;
+    let testLogs = [];
+
     console.log(testResults.run.executions.length);
 
     testResults.run.executions.forEach(function (testCase) {
-
-        var featureName = testCase.item.name;
+        let featureName = testCase.item.name;
         console.log('working test case: ' + featureName);
 
-        TCStatus = "passed";
-        var reportingLog = {
-            exe_start_date: new Date(), // TODO These could be passed in
+        let TCStatus = "passed";
+        let reportingLog = {
+            exe_start_date: new Date(),
             exe_end_date: new Date(),
             module_names: [
                 collectionName,
                 featureName
             ],
             name: testCase.item.name,
-            automation_content: collectionName + "#" + testCase.item.name // TODO See if ID is static or when that changes
+            automation_content: collectionName + "#" + testCase.item.name
         };
 
-        var testStepLogs = [];
-        order = 0;
-        stepNames = [];
-
+        let testStepLogs = [];
+        let order = 0;
 
         if ("assertions" in testCase) {
             testCase.assertions.forEach(function (step) {
-                stepNames.push(step.assertion);
-                stepErrorVal = "passed";
-
-                var actual = step.assertion;
+                let stepErrorVal = "passed";
+                let actual = step.assertion;
 
                 if ("error" in step) {
                     stepErrorVal = "failed";
@@ -51,7 +46,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                     actual = step.error.message;
                 }
 
-                var stepLog = {
+                let stepLog = {
                     order: order,
                     description: step.assertion,
                     expected_result: step.assertion,
@@ -63,8 +58,8 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                 order++;
             });
         } else {
-            var stepInfo = testCase.request.method + ' ' + testCase.request.url.protocol + '://' + testCase.request.url.host.join('.') + '\r\n' + testCase.body;
-            var stepLog = {
+            let stepInfo = `${testCase.request.method} ${testCase.request.url.protocol}://${testCase.request.url.host.join('.')} \r\n ${testCase.body}`;
+            let stepLog = {
                 order: order,
                 description: stepInfo,
                 expected_result: '200 OK',
@@ -74,18 +69,17 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
 
             testStepLogs.push(stepLog);
             order++;
-        };
+        }
 
-        reportingLog.description = "Created by Pulse"; // testCase.request;
+        reportingLog.description = "Created by Pulse";
         reportingLog.status = TCStatus;
         reportingLog.test_step_logs = testStepLogs;
         reportingLog.featureName = featureName;
         testLogs.push(reportingLog);
         console.log(testLogs.length);
-
     });
 
-    var formattedResults = {
+    let formattedResults = {
         "projectId": projectId,
         "testcycle": cycleId,
         "logs": testLogs

@@ -1,26 +1,9 @@
 const cp = require('child_process');
-// This script requires the 'request' node.js module.
-// This section grabs required node modules not packaged with
-// the Automation Host service prior to executing the script.
-const req = async module => {
-  try {
-    require.resolve(module);
-  } catch (e) {
-    console.log(`=== could not resolve "${module}" ===\n=== installing... ===`);
-    cp.execSync(`npm install ${module}`);
-    await setImmediate(() => {});
-    console.log(`=== "${module}" has been installed ===`);
-  }
-  console.log(`=== requiring "${module}" ===`);
-  try {
-    return require(module);
-  } catch (e) {
-    console.log(`=== could not include "${module}" ===`);
-    console.log(e);
-    process.exit(1);
-  }
-}
+const fs = require('fs').promises;
+const path = require('path');
+const axios = require('axios');
 
+// This function checks the size of the payload
 const formatSizeUnits = async (bytes) => {
     if (bytes > 0) {
         bytes = (bytes / 1048576).toFixed(4); 
@@ -30,80 +13,75 @@ const formatSizeUnits = async (bytes) => {
     return bytes;
 }
 
+// And this function executes a CLI command if needed
+const execCommand = async (command) => {
+    console.log('=== [INFO] executing command: ', command, ' ===');
+    cp.execSync(command, {stdio: 'inherit'});
+    console.log('=== [INFO] execution completed ===');
+}
+
+// And this function does all the things
 const main = async () => {
-
-    const { execSync } = await req("child_process");
-    const fs = await req('fs');
-    const path = await req('path');
-    const request = await req('request');
-    
+    // Configuration Section
     const pulseUri = '';                // Pulse parser webhook endpoint
-    const projectId = '';               // target qTest Project ID
-    const cycleId = '';                 // target qTest Test Cycle ID
-    
-    var result = '';
-    
-    
-    // Build command line for test execution.  Place any scripts surrounding build/test procedures here.
-    // Comment out this section if build/test execution takes place elsewhere.
-    let command = '';
-    
-    console.log(`=== executing command ===`);
-    console.log(command);
-    execSync(command, {stdio: "inherit"});
-    console.log(`=== command completed ===`);
-    // Build section end.
+    const projectId = '';               // Target qTest Project ID
+    const cycleId = '';                 // Target qTest Test Cycle ID
+    const command = '';                 // CLI execution command, leave empty if not required
+    // Edit this to reflect your results file, be certain to escape the slashes as seen below
+    const resultsPath = 'C:\\path\\to\\results\\filename.ext';
+    // End Configuration Section
 
-    
-    // Edit this to reflect your results file, be certain to escape the slashes as seen below.
-    let resultsPath = 'C:\\path\\to\\results\\filename.ext';
-    
-    try {
-        result = fs.readFileSync(resultsPath, 'ascii');
-        console.log('=== read results file successfully ===');
-    } catch(e) {
-        console.log('=== error: ', e.stack, ' ===');
+    // Execution section, will skip if 'command' is empty string ''
+    if (command !== '') {
+        try {
+            execCommand(command);
+        } catch(e) {
+            console.log('=== [ERROR] ', e.stack, ' ===');
+            process.exit(1);
+        }
     }
-    
-    let buff = new Buffer.from(result);
+
+    // Read the results file
+    let result = '';
+    try {
+        result = await fs.readFile(resultsPath, 'utf8');
+        console.log('=== [INFO] read results file successfully ===');
+    } catch(e) {
+        console.log('=== [ERROR] ', e.stack, ' ===');
+        process.exit(1);
+    }
+
+    // Add a bit of *spice*
+    let buff = Buffer.from(result);
     let base64data = buff.toString('base64');
 
     let payloadBody = {
-            'projectId': projectId,
-            'testcycle': cycleId,
-            'result': base64data
-        };
+        'projectId': projectId,
+        'testcycle': cycleId,
+        'result': base64data
+    };
 
+    // Check the payload size to make sure it'll fit, needs to be <=50MB
     let bufferSize = await formatSizeUnits(Buffer.byteLength(JSON.stringify(payloadBody), 'utf8'));
 
-    console.log('=== info: payload size is ' + bufferSize + ' MB ===');
+    console.log('=== [INFO] payload size is ' + bufferSize + ' MB ===');
     if (bufferSize > 50) {
-        console.log('=== error: payload size is greater than 50 MB cap, exiting ===');
-        process.exit();
+        console.log('=== [ERROR] payload size is greater than 50 MB cap ===');
+        process.exit(1);
     }
 
-    // establish the options for the webhook post to Pulse parser
-    var opts = {
-        url: pulseUri,
-        json: true,
-        body: payloadBody
-    };
-    
-    console.log(`=== uploading results... ===`)
-    return request.post(opts, function (err, response, resbody) {
-        if (err) {
-            console.log('=== error: ' + err + ' ===');
-            Promise.reject(err);
+    // Establish the options for the webhook post to Pulse parser
+    try {
+        console.log('=== [INFO] uploading results... ===');
+        const response = await axios.post(pulseUri, payloadBody);
+        for (let r = 0; r < response.data.length; r++) {
+            console.log('=== [INFO] status: ' + response.data[r].status + ', execution id: ' + response.data[r].id + ' ===');
         }
-        else {
-            //console.log(response);
-            //console.log(resbody);
-            for (r = 0; r < response.body.length; r++) {
-                console.log('=== status: ' + response.body[r].status + ', execution id: ' + response.body[r].id + ' ===');
-            }
-            Promise.resolve("Uploaded results successfully.");
-        }
-    });
+        console.log('=== [INFO] uploaded results successfully ===');
+    } catch (err) {
+        console.log('=== [ERROR] ' + err + ' ===');
+        process.exit(1);
+    }
 };
 
 main();
