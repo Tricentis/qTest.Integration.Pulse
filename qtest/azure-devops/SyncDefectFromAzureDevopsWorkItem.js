@@ -1,6 +1,4 @@
-const PulseSdk = require("@qasymphony/pulse-sdk");
-const request = require("request");
-const xml2js = require("xml2js");
+const axios = require("axios");
 
 // DO NOT EDIT exported "handler" function is the entrypoint
 exports.handler = async function ({ event, constants, triggers }, context, callback) {
@@ -177,24 +175,16 @@ ${htmlToPlainText(fields["Microsoft.VSTS.Common.AcceptanceCriteria"])}`;
             url: url,
             json: true,
             headers: standardHeaders,
-            body: requestBody,
+            data: requestBody,
             method: method,
         };
 
-        return new Promise((resolve, reject) => {
-            request(opts, function (error, response, body) {
-                if (error) {
-                    reject(error);
-                    return;
-                }
-
-                if (response.statusCode < 200 || response.statusCode >= 300) {
-                    reject(`HTTP ${response.statusCode}`);
-                    return;
-                }
-
-                resolve(body);
-            });
-        });
+        try {
+            const response = await axios(opts);
+            return response.data;
+        } catch (error) {
+            console.log(`[Error] HTTP ${error.response.status}: ${error.response.data}`);
+            throw error;
+        }
     }
 };

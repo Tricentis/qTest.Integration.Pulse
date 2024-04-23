@@ -1,8 +1,5 @@
-const PulseSdk = require("@qasymphony/pulse-sdk");
-const request = require("request");
-const xml2js = require("xml2js");
+const axios = require("axios");
 
-// DO NOT EDIT exported "handler" function is the entrypoint
 exports.handler = async function ({ event, constants, triggers }, context, callback) {
     function buildRequirementDescription(eventData) {
         const fields = getFields(eventData);
@@ -12,6 +9,7 @@ exports.handler = async function ({ event, constants, triggers }, context, callb
 <b>Iteration:</b> ${fields["System.IterationPath"]}<br>
 <b>State:</b> ${fields["System.State"]}<br>
 <b>Reason:</b> ${fields["System.Reason"]}<br>
+<b>Acceptance Criteria:</b> ${fields["Microsoft.VSTS.Common.AcceptanceCriteria"]}<br>
 <b>Description:</b> ${fields["System.Description"] || ""}`;
     }
 
@@ -198,26 +196,16 @@ exports.handler = async function ({ event, constants, triggers }, context, callb
     async function doRequest(url, method, requestBody) {
         const opts = {
             url: url,
-            json: true,
-            headers: standardHeaders,
-            body: requestBody,
             method: method,
+            headers: standardHeaders,
+            data: requestBody,
         };
 
-        return new Promise((resolve, reject) => {
-            request(opts, function (error, response, body) {
-                if (error) {
-                    reject(error);
-                    return;
-                }
-
-                if (response.statusCode < 200 || response.statusCode >= 300) {
-                    reject(`HTTP ${response.statusCode}`);
-                    return;
-                }
-
-                resolve(body);
-            });
-        });
+        try {
+            const response = await axios(opts);
+            return response.data;
+        } catch (error) {
+            throw new Error(`Failed to ${method} ${url}. ${error.message}`);
+        }
     }
 };

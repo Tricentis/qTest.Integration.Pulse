@@ -53,120 +53,61 @@
  * Pulse events called: ChatOpsEvent
  */
 
-const request = require('request');
+const axios = require('axios');
 const { Webhooks } = require('@qasymphony/pulse-sdk');
-const ScenarioSdk = require('@qasymphony/scenario-sdk');
 
-const Features = {
-    getIssueLinkByFeatureName(qtestToken, scenarioProjectId, name) {
-        return new ScenarioSdk.Features({ qtestToken, scenarioProjectId }).getFeatures(`"${name}"`);
-    }
-};
-
-exports.handler = function ({ event: body, constants, triggers }, context, callback) {
+exports.handler = async function ({ event: body, constants, triggers }, context, callback) {
     function emitEvent(name, payload) {
         let t = triggers.find(t => t.name === name);
         return t && new Webhooks().invoke(t, payload);
     }
 
-    var payload = body;
+    let queueId = 0;
+    
+    console.log(`[INFO]: About to process ${body.logs.length} results...`);
+    emitEvent('ChatOpsEvent', { message: `[INFO]: About to process ${body.logs.length} results...`});
 
-    var testLogs = payload.logs;
-    var cycleId = payload.testcycle;
-    var projectId = payload.projectId;
-    var queueStatus = 'IN_WAITING'; // IN_WAITING, IN_PROCESSING, FAILED, PENDING and SUCCESS
-    var queueId = 0;
-
-    var standardHeaders = {
+    let standardHeaders = {
         'Content-Type': 'application/json',
         'Authorization': `bearer ${constants.QTEST_TOKEN}`
     }
 
-    function createLogsAndTCs() {
-        var opts = {
-            url: 'https://' + constants.ManagerURL + '/api/v3/projects/' + projectId + '/auto-test-logs?type=automation',
-            json: true,
-            headers: standardHeaders,
-            body: {
-                test_cycle: cycleId,
-                test_logs: testLogs
-            }
-        };
-
-        return request.post(opts, function (err, response, resbody) {
-
-            if (err) {
-                Promise.reject(err);
-                console.log(err);
-            }
-            else {
-                if (response.body.type == 'AUTOMATION_TEST_LOG') {
-                  queueId = response.body.id;
-                    Promise.resolve('Results queued successfully.');
-                    emitEvent('ChatOpsEvent', { message: '[INFO]: Results queued successfully for id: ' + resbody.id});
-                    console.log('[INFO]: Results queued successfully for id: ' + resbody.id);
-                    checkQueueStatus(queueId);
-
-                    //console.log('About to call Link Requirements Rule.');
-                    //emitEvent('<INSERT NAME OF LINK SCENARIO REQUIREMENTS RULE HERE>', payload);
-                }
-                else {
-                    emitEvent('ChatOpsEvent', { message: 'Unable to upload test results.' });
-                    Promise.reject('[ERROR]: Unable to upload test results.  See logs for details.');
-                    emitEvent('ChatOpsEvent', { message: '[ERROR]: ' + JSON.stringify(resbody) });
-                    console.log('[ERROR]: ' + JSON.stringify(resbody));
-                }
-            }
-        });
-    };
-
-    async function checkQueueStatus(id) {
-        var opts = {
-            url: 'https://' + constants.ManagerURL + '/api/v3/projects/queue-processing/' + id,
-            json: true,
-            headers: standardHeaders
-        };
-        
-        var queueCounter = 0;
-        const queueProcessing = ['IN_WAITING', 'IN_PROCESSING', 'PENDING'];
-
-        await sleep(5000);
-
-        while (queueProcessing.includes(queueStatus))  {
-
-          await request(opts, function (err, response, resbody) {
-              if (err) {
-                  Promise.reject(err);
-                  console.log(err);
-                  return;
-              }
-              else {
-                queueStatus = resbody.state;
-                Promise.resolve('Queue checked successfully.');
-                emitEvent('ChatOpsEvent', { message: '[INFO]: Queue checked for id: ' + id + ', status is now: ' + queueStatus});
-                console.log('[INFO]: Queue checked for id: ' + id + ', status is now: ' + queueStatus);
-                if (queueStatus == 'FAILED') {
-                    emitEvent('ChatOpsEvent', { message: '[ERROR]: ' + resbody.content});
-                    console.log('[ERROR]: ' + resbody.content);
-                }
-              }
-          });
-
-          queueCounter++;
-
-          if(queueCounter > 30) {
-            console.log('[WARNING]: Queue id: ' + id + ' is still in processing after 60 seconds, likely caused by heavy traffic.')
-            return;
-          } else {                
-                await sleep(5000);
-            }
+    // Axios interceptor for global error handling
+    axios.interceptors.response.use(
+        response => response,
+        error => {
+            console.error(error);
+            return Promise.reject(error);
         }
-        return;
+    );
+
+    async function createLogsAndTCs() {
+        let opts = {
+            url: 'https://' + constants.ManagerURL + '/api/v3/projects/' + body.projectId + '/auto-test-logs?type=automation',
+            method: 'post',
+            headers: standardHeaders,
+            data: {
+                test_cycle: body.testcycle,
+                test_logs: body.logs
+            }
+        };
+
+        try {
+            const response = await axios(opts);
+            if (response.data.type == 'AUTOMATION_TEST_LOG') {
+                queueId = response.data.id;
+                emitEvent('ChatOpsEvent', { message: '[INFO]: Results queued successfully for id: ' + response.data.id});
+                console.log('[INFO]: Results queued successfully for id: ' + response.data.id);
+                emitEvent('CheckProcessingQueue', {'queueId': queueId});
+            } else {
+                emitEvent('ChatOpsEvent', { message: 'Unable to upload test results.' });
+                console.error('[ERROR]: Unable to upload test results. See logs for details.');
+                emitEvent('ChatOpsEvent', { message: '[ERROR]: ' + JSON.stringify(response.data) });
+            }
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-    function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-    createLogsAndTCs();
+    await createLogsAndTCs();
 }

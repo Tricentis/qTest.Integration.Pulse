@@ -1,7 +1,6 @@
-const {Webhooks} = require('@qasymphony/pulse-sdk');
-const request = require("request");
+const { Webhooks } = require('@qasymphony/pulse-sdk');
+const axios = require('axios');
 
-// DO NOT EDIT exported "handler" function is the entrypoint
 exports.handler = async function ({ event, constants, triggers }, context, callback) {
     let iteration;
     if (event.iteration != undefined) {
@@ -105,13 +104,18 @@ exports.handler = async function ({ event, constants, triggers }, context, callb
     }
 
     async function getDefectById(defectId) {
-        const url = `https://${constants.ManagerURL}/api/v3/projects/${constants.ProjectID}/defects/${defectId}`;
+        const defectUrl = `https://${constants.ManagerURL}/api/v3/projects/${constants.ProjectID}/defects/${defectId}`;
 
         console.log(`[Info] Get defect details for '${defectId}'`);
 
         try {
-            const response = await doqTestRequest(url, "GET", null);
-            return response;
+            const response = await axios.get(defectUrl, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `bearer ${constants.QTEST_TOKEN}`
+                }
+            });
+            return response.data;
         } catch (error) {
             console.log("[Error] Failed to get defect by id.", error);
         }
@@ -119,7 +123,8 @@ exports.handler = async function ({ event, constants, triggers }, context, callb
 
     async function createAzDoBug(defectId, name, description, link) {
         console.log(`[Info] Creating bug in Azure DevOps '${defectId}'`);
-        const url = encodeURI(`${constants.AzDoProjectURL}/_apis/wit/workitems/$bug?api-version=6.0`);
+        const baseUrl = encodeIfNeeded(constants.AzDoProjectURL);
+        const url = `${baseUrl}/_apis/wit/workitems/$bug?api-version=6.0`;
         const requestBody = [
             {
                 op: "add",
@@ -128,7 +133,6 @@ exports.handler = async function ({ event, constants, triggers }, context, callb
             },
             {
                 op: "add",
-                //path: "/fields/System.Description", //in case of Scrum AzDo template the description is not visible/used on the bug
                 path: "/fields/Microsoft.VSTS.TCM.ReproSteps",
                 value: description,
             },
@@ -147,9 +151,14 @@ exports.handler = async function ({ event, constants, triggers }, context, callb
             },
         ];
         try {
-            const bug = await doAzDoRequest(url, "POST", requestBody);
+            const response = await axios.post(url, requestBody, {
+                headers: {
+                    'Content-Type': 'application/json-patch+json',
+                    'Authorization': `basic ${Buffer.from(`:${constants.AZDO_TOKEN}`).toString('base64')}`
+                }
+            });
             console.log(`[Info] Bug created in Azure DevOps`);
-            return bug;
+            return response.data;
         } catch (error) {
             console.log(`[Error] Failed to create bug in Azure DevOps: ${error}`);
         }
@@ -169,71 +178,27 @@ exports.handler = async function ({ event, constants, triggers }, context, callb
         console.log(`[Info] Updating defect '${defectId}'.`);
 
         try {
-            await doqTestRequest(url, "PUT", requestBody);
+            await axios.put(url, requestBody, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `bearer ${constants.QTEST_TOKEN}`
+                }
+            });
             console.log(`[Info] Defect '${defectId}' updated.`);
         } catch (error) {
             console.log(`[Error] Failed to update defect '${defectId}'.`, error);
         }
     }
 
-    async function doqTestRequest(url, method, requestBody) {
-        const qTestHeaders = {
-            "Content-Type": "application/json",
-            Authorization: `bearer ${constants.QTEST_TOKEN}`,
-        };
-        const opts = {
-            url: url,
-            json: true,
-            headers: qTestHeaders,
-            body: requestBody,
-            method: method,
-        };
-
-        return new Promise((resolve, reject) => {
-            request(opts, function (error, response, body) {
-                if (error) {
-                    reject(error);
-                    return;
-                }
-
-                if (response.statusCode < 200 || response.statusCode >= 300) {
-                    reject(`HTTP ${response.statusCode}`);
-                    return;
-                }
-
-                resolve(body);
-            });
-        });
-    }
-
-    async function doAzDoRequest(url, method, requestBody) {
-        const basicToken = Buffer.from(`:${constants.AZDO_TOKEN}`).toString("base64");
-
-        const opts = {
-            url: url,
-            json: true,
-            headers: {
-                "Content-Type": "application/json-patch+json",
-                Authorization: `basic ${basicToken}`,
-            },
-            body: requestBody,
-            method: method,
-        };
-
-        return new Promise((resolve, reject) => {
-            request(opts, function (error, response, body) {
-                if (error) {
-                    reject(error);
-                    return;
-                }
-
-                if (response.statusCode < 200 || response.statusCode >= 300) {
-                    reject(`HTTP ${response.statusCode}`);
-                    return;
-                }
-
-                resolve(body);
-            });
-        });
+    function encodeIfNeeded(url) {
+        try {
+            // Decode the URL to check if it's already encoded
+            let decodedUrl = decodeURIComponent(url);
+            // If decoding is successful, the URL was already encoded
+            return url;
+        } catch (e) {
+            // If decoding fails, the URL needs to be encoded
+            return encodeURIComponent(url);
+        }
     }
 };
