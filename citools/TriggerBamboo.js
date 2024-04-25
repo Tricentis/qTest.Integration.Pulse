@@ -18,9 +18,10 @@ const axios = require('axios');
 const { Webhooks } = require('@qasymphony/pulse-sdk');
 
 exports.handler = async function ({ event, constants, triggers }, context, callback) {
-  function emitEvent(name, payload) {
-    return (t = triggers.find(t => t.name === name)) ? new Webhooks().invoke(t, payload) : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
-}
+    function emitEvent(name, payload) {
+        let t = triggers.find(t => t.name === name);
+        return t ? new Webhooks().invoke(t, payload) : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
+    }
 
     try {
         const url = `http://${constants.BambooURL}/rest/api/latest/queue/${constants.BambooProjectCode}?stage&executeAllStages&customRevision&os_authType=basic`;
