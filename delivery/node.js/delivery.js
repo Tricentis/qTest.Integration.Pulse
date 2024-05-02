@@ -65,7 +65,7 @@ const main = async () => {
     let bufferSize = await formatSizeUnits(Buffer.byteLength(JSON.stringify(payloadBody), 'utf8'));
 
     console.log('=== [INFO] payload size is ' + bufferSize + ' MB ===');
-    if (bufferSize > 50) {
+    if (typeof Number(bufferSize) > 50) {
         console.log('=== [ERROR] payload size is greater than 50 MB cap ===');
         process.exit(1);
     }
