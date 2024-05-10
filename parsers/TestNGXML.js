@@ -56,7 +56,6 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
             testCases.forEach(function(tc) {
                 let className = tc.$.name;
                 console.log('[INFO]: Class Name: ', className);
-                let note = '';
                 let exe_start_date = timestamp;
                 let methodStatus = 'PASS';
                 testSteps = [];
@@ -68,30 +67,89 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                     return;
                 }
 
-                //const invalidMethods = ['afterMethod', 'beforeMethod', 'beforeTest', 'beforeClass', 'afterClass', 'testBreakdown'];
+                const invalidMethods = ['afterMethod', 'beforeMethod', 'beforeTest', 'beforeClass', 'afterClass', 'testBreakdown', 'Reset'];
                 let testMethods = Array.isArray(tc['test-method']) ? tc['test-method'] : [tc['test-method']];
                 console.log(`[INFO]: Processing ${testMethods.length} test methods.`);
 
                 testMethods.forEach(function(tm) {
                     let methodName = tm.$.name;
-                    console.log('[INFO]: Method Name: ', methodName);
-                    methodStatus = tm.$.status;
+                    if(!invalidMethods.includes(methodName)) {
+                        console.log('[INFO]: Method Name: ', methodName);
+                        methodStatus = tm.$.status;
+                        let stackException;
+                        let reporterOutput;
+                        let paramList = [];
 
-                    if (methodStatus == 'FAIL') {
-                        note += tm.exception['full-stacktrace'];
+                        // Grab the stack trace if it is a failed test, since these only exist in failures
+                        if (methodStatus == 'FAIL') {
+                            stackException = tm.exception['full-stacktrace'];
+                        }
+
+                        // Flatten the params structure into a plaintext list of params
+                        if (tm.params && tm.params.param) {
+                            let paramArray = Array.isArray(tm.params.param) ? tm.params.param : [tm.params.param];
+                            console.log(`[INFO]: Processing ${paramArray.length} parameters.`);
+                            paramArray.forEach(function(param) {
+                                if (typeof param.value === 'object') {
+                                    console.log(`[INFO]: Processing parameter: ${JSON.stringify(param.value)}`);
+                                    paramList.push(JSON.stringify(param.value));
+                                } else if (typeof param.value === 'string') {
+                                    console.log(`[INFO]: Processing parameter: ${param.value.trim()}`);
+                                    paramList.push(param.value.trim());
+                                } else {
+                                    console.log(`[ERROR]: Unexpected param value type: ${typeof param.value}`);
+                                }
+                            });
+                            paramList = paramList.join('\n');
+                            console.log(paramList);
+                        }
+                        
+                        // Flatten the reporter-output structure into a plaintext list of reporter output
+                        console.log(`[INFO]: Processing reporter output entries.`);
+                        if (Array.isArray(tm['reporter-output'])) {
+                            let lines = tm['reporter-output'].reduce((acc, item) => {
+                                if (item.line) {
+                                    acc.push(...item.line.map(line => line.trim().replace('\n','')));
+                                }
+                                return acc;
+                            }, []);
+                        
+                            reporterOutput = lines.join('\n');
+                            //console.log(reporterOutput);
+                        } else if (tm['reporter-output'] && Array.isArray(tm['reporter-output'].line)) {
+                            reporterOutput = tm['reporter-output'].line.join('\n');
+                            //console.log(reporterOutput);
+                        } else if (tm['reporter-output'] && typeof tm['reporter-output'].line === 'string') {
+                            reporterOutput = tm['reporter-output'].line;
+                            //console.log(tm['reporter-output'].line);
+                        }
+
+                        // Mongle all these together into a single text file attachment, if they are populated
+                        let stepAttachment = `${paramList !== undefined ? 'Parameters:\n' + paramList + '\n\n' : ''}${reporterOutput !== undefined ? 'Reporter Output:\n' + reporterOutput + '\n\n' : ''}${stackException !== undefined ? 'Exception Stack:\n' + stackException : ''}`;
+                        // Base64 encode the mongled text for our API to consume it without complaining
+                        let encodedStepAttachment = Buffer.from(stepAttachment, 'utf-8').toString('base64');
+
+                        let stepLog = {
+                            order: order,
+                            exe_date: exe_start_date,
+                            description: methodName,
+                            expected_result: methodName,
+                            actual_result: methodName,
+                            status: methodStatus,
+                            attachments: [
+                                {
+                                    'name': `${methodName}-${exe_start_date.toString().replace(/:/g,'-')}.txt`,
+                                    'content_type': 'text/plain',
+                                    'data': encodedStepAttachment
+                                }
+                            ]
+                        };
+
+                        testSteps.push(stepLog);
+                        order++;
+                    } else {
+                        console.log(`[INFO]: ${methodName} is a housekeeping task and is not a valid test result.`);
                     }
-
-                    let stepLog = {
-                        order: order,
-                        exe_date: exe_start_date,
-                        description: methodName,
-                        expected_result: methodName,
-                        actual_result: methodName,
-                        status: methodStatus
-                    };
-
-                    testSteps.push(stepLog);
-                    order++;
                 });
             
                 let exe_end_date = timestamp;
@@ -101,7 +159,6 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                     status: methodStatus,
                     name: className,
                     attachments: [],
-                    note: note,
                     exe_start_date: exe_start_date.toISOString(),
                     exe_end_date: exe_end_date.toISOString(),
                     automation_content: suiteName + '#' + className,
