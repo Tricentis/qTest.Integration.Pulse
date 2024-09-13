@@ -84,7 +84,7 @@ exports.handler = async function ({ event: body, constants, triggers }, context,
                         testSteps = [];
                         console.log('[INFO]: Method Name: ', methodName);
                         methodStatus = tm.$.status;
-                        let automationContent = `${className}#${methodName}`; 
+                        let automationContent = `${className}-${methodName}`; 
                         let exe_start_date = convertUTCToISO(tm.$['started-at']);
                         let exe_end_date = convertUTCToISO(tm.$['finished-at']);
                         let methodDescription = tm.description || methodName;
@@ -103,7 +103,7 @@ exports.handler = async function ({ event: body, constants, triggers }, context,
                                         : param.value.trim()
                                 );
                             });
-                            paramList = '?' + paramList.join('&');
+                            paramList = '_' + paramList.join('-');
                             automationContent += paramList; // Append the params to the automation content
                         }
 
