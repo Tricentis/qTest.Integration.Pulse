@@ -12,7 +12,7 @@ Repository of open-source qTest Pulse rules powered by the community.  [What is 
 
 ## How It Works
 
-<p align="center"><img width="90%" src="https://d1f5pmhur9pirz.cloudfront.net/wp-content/uploads/2018/12/pulse-flow.png"></p>
+<p align="center"><img width="90%" src="[https://d1f5pmhur9pirz.cloudfront.net/wp-content/uploads/2018/12/pulse-flow.png](https://github.com/Tricentis/qTest.Integration.Pulse/blob/master/blob/pulse-flow.png)"></p>
 
 ## Example Workflow Overviews
 
