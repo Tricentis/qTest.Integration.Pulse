@@ -7,12 +7,12 @@ Repository of open-source qTest Pulse rules powered by the community.  [What is 
 
 * These rules standardize Base64 Encoding the results payload to the parser endpoint for security and compatibility.
 * These rules utilize standardized nomenclature for variables, Constants, and certain Triggers.
-* The stock rules in the [Pulse v9.1 repository](https://github.com/QASymphony/PulseRules_v9.1) mentioned by the documentation are NOT compatible with the rules in this repository due to the above updated standards and nomenclatures.
+* The stock rules in the deprecated [Pulse v9.1 repository](https://github.com/QASymphony/PulseRules_v9.1) mentioned by the documentation are NOT compatible with the rules in this repository due to the above updated standards and nomenclatures.
 * qTest Pulse and qTest Launch Universal Agent parsers use different API endpoints and thus are NOT compatible.
 
 ## How It Works
 
-<p align="center"><img width="90%" src="[https://d1f5pmhur9pirz.cloudfront.net/wp-content/uploads/2018/12/pulse-flow.png](https://github.com/Tricentis/qTest.Integration.Pulse/blob/master/blob/pulse-flow.png)"></p>
+<p align="center"><img width="90%" src="https://github.com/Tricentis/qTest.Integration.Pulse/blob/master/blob/pulse-flow.png"></p>
 
 ## Example Workflow Overviews
 
