@@ -1,8 +1,7 @@
 import { Webhooks } from "@qasymphony/pulse-sdk";
-import request from "request";
 import xml2js from "xml2js";
 
-exports.handler = async function ({ event: body, constants, triggers }, context, callback) {
+exports.handler = async function ({ event: body, triggers }) {
     function emitEvent(name, payload) {
         let t = triggers.find((t) => t.name === name);
         return t
@@ -17,7 +16,6 @@ exports.handler = async function ({ event: body, constants, triggers }, context,
     let testResults = Buffer.from(payload.result, "base64").toString("utf8");
 
     let testLogs = [];
-    let timestamp = new Date();
 
     function formatDate(obj) {
         if (obj.length < 9) {
@@ -45,10 +43,8 @@ exports.handler = async function ({ event: body, constants, triggers }, context,
                 let testSuites = Array.isArray(result.robot.suite) ? result.robot.suite : [result.robot.suite];
                 testSuites.forEach(function (suiteobj) {
                     let testcases = Array.isArray(suiteobj.test) ? suiteobj.test : [suiteobj.test];
-                    let suiteName = suiteobj.$.name;
                     testcases.forEach(function (obj) {
                         let testCaseName = obj.$.name;
-                        let status = obj.status.$.status;
                         let startingTime = formatDate(obj.status.$.starttime);
                         let endingTime = formatDate(obj.status.$.endtime);
                         let note = "";

@@ -37,7 +37,9 @@ import { Webhooks } from "@qasymphony/pulse-sdk";
  * - Formatted result sent to the trigger "UpdateQTestWithResults"
  * - ChatOpsEvent channel (if any) notified of the result or error
  */
-exports.handler = async function ({ event: body, constants, triggers }, context, callback) {
+
+// DO NOT EDIT exported "handler" function is the entrypoint
+exports.handler = async function ({ event, constants, triggers }, context, callback) {
     function emitEvent(name, payload) {
         let t = triggers.find((t) => t.name === name);
         return t
@@ -51,8 +53,9 @@ exports.handler = async function ({ event: body, constants, triggers }, context,
         let cycleId = payload.testcycle;
 
         let testResults = JSON.parse(Buffer.from(payload.result, "base64").toString("utf8"));
-        console.log(testResults.results);
+
         let testLogs = [];
+
         for (let result of testResults.results) {
             for (let suite of result.suites) {
                 for (let test of suite.tests) {
@@ -66,6 +69,7 @@ exports.handler = async function ({ event: body, constants, triggers }, context,
                         properties: [],
                         note: test.state == "failed" ? test.err.estack : "",
                     };
+
                     let testStepLogs = [
                         {
                             order: 1,

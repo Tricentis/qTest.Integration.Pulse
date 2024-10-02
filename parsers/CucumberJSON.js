@@ -1,4 +1,4 @@
-import { Webhooks } from '@qasymphony/pulse-sdk';
+import { Webhooks } from "@qasymphony/pulse-sdk";
 
 /**
  * call source: delivery script from CI Tool (Jenkins, Bamboo, TeamCity, CircleCI, etc), Launch, locally executed

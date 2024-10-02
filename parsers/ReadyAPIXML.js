@@ -1,7 +1,4 @@
-const PulseSdk = require("@qasymphony/pulse-sdk");
-const request = require("request");
-const xml2js = require("xml2js");
-const { Webhooks } = require("@qasymphony/pulse-sdk");
+import { Webhooks } from "@qasymphony/pulse-sdk";
 
 exports.handler = function ({ event: body, constants, triggers }, context, callback) {
     function emitEvent(name, payload) {
@@ -11,17 +8,17 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
             : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
     }
 
-    let payload = body;
-    let projectId = payload.projectId;
-    let cycleId = payload.testcycle;
-    let testLogs = [];
+    var payload = body;
+    var projectId = payload.projectId;
+    var cycleId = payload.testcycle;
+    var testLogs = [];
 
     let testResults = Buffer.from(payload.result, "base64").toString("utf8");
 
-    let parseString = require("xml2js").parseString;
-    let startTime = "";
-    let endTime = "";
-    let lastEndTime = 0;
+    var parseString = require("xml2js").parseString;
+    var startTime = "";
+    var endTime = "";
+    var lastEndTime = 0;
 
     parseString(
         testResults,
@@ -35,26 +32,27 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                 emitEvent("ChatOpsEvent", { message: "Unexpected Error Parsing XML Document: " + err });
                 console.log("[ERROR]: " + err);
             } else {
-                let classStatus = "";
-                let testsuites = Array.isArray(result.testSuiteResults["testSuite"])
+                var classStatus = "";
+                var testsuites = Array.isArray(result.testSuiteResults["testSuite"])
                     ? result.testSuiteResults["testSuite"]
                     : [result.testSuiteResults["testSuite"]];
                 testsuites.forEach(function (testsuite) {
+                    console.log(JSON.stringify(testsuite));
                     lastEndTime = 0;
-                    let suiteName = testsuite.testSuiteName;
+                    const suiteName = testsuite.testSuiteName;
                     console.log("[INFO]: Suite Name: " + suiteName);
-                    let testcases = Array.isArray(testsuite.testRunnerResults["testCase"])
+                    var testcases = Array.isArray(testsuite.testRunnerResults["testCase"])
                         ? testsuite.testRunnerResults["testCase"]
                         : [testsuite.testRunnerResults["testCase"]];
                     testcases.forEach(function (testcase) {
-                        className = testcase.testCaseName;
+                        const className = testcase.testCaseName;
                         console.log("[INFO]: Class Name: " + className);
-                        classId = testcase.testCaseId;
-                        let moduleNames = [suiteName];
-                        let stack = "";
+                        const classId = testcase.testCaseId;
+                        var moduleNames = [suiteName];
+                        var stack = "";
 
                         console.log("[INFO]: Class Status: " + testcase.status);
-
+                        let classStatus = "";
                         if (testcase.status == "OK" || testcase.status == "PASS" || testcase.status == "FINISHED") {
                             classStatus = "PASSED";
                         } else if (testcase.status == "FAIL") {
@@ -64,16 +62,16 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                         }
                         console.log("[INFO]: Translated Status: " + classStatus);
 
-                        let teststeps = Array.isArray(testcase.testStepResults["result"])
+                        var teststeps = Array.isArray(testcase.testStepResults["result"])
                             ? testcase.testStepResults["result"]
                             : [testcase.testStepResults["result"]];
-                        let teststepparams = Array.isArray(testcase.testStepParameters["parameters"])
+                        var teststepparams = Array.isArray(testcase.testStepParameters["parameters"])
                             ? testcase.testStepParameters["parameters"]
                             : [testcase.testStepParameters["parameters"]];
-                        let testStepLogs = [];
+                        var testStepLogs = [];
                         teststeps.forEach(function (teststep) {
-                            let stepStatus = "";
-
+                            var stepStatus = "";
+                            let testStepParam = "";
                             teststepparams.forEach(function (teststepparam) {
                                 if (teststepparam.testStepName == teststep.name) {
                                     testStepParam = teststepparam.iconPath;
@@ -85,9 +83,9 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                             } else {
                                 startTime = lastEndTime;
                             }
-                            interim =
+                            const interim =
                                 new Date(Date.parse(startTime)).getSeconds() + parseFloat(teststep.timeTaken / 1000);
-                            endTime = new Date(Date.parse(startTime)).setSeconds(interim);
+                            let endTime = new Date(Date.parse(startTime)).setSeconds(interim);
                             endTime = new Date(endTime).toISOString();
 
                             if (teststep.status == "OK" || teststep.status == "PASS" || teststep.status == "FINISHED") {
@@ -99,7 +97,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                             }
 
                             if (stepStatus == "FAILED") {
-                                let testFailure = Array.isArray(testcase.failedTestSteps["error"])
+                                var testFailure = Array.isArray(testcase.failedTestSteps["error"])
                                     ? testcase.failedTestSteps["error"]
                                     : [testcase.failedTestSteps["error"]];
                                 testFailure.forEach(function (failure) {
@@ -111,7 +109,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                                 });
                             }
 
-                            let testStepLog = {
+                            var testStepLog = {
                                 order: teststep.order - 1,
                                 description: teststep.name,
                                 expected_result: testStepParam,
@@ -131,9 +129,9 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                             testStepLogs.push(testStepLog);
                         });
 
-                        let note = "";
+                        var note = "";
 
-                        let testLog = {
+                        var testLog = {
                             status: classStatus,
                             name: className,
                             attachments: [],
@@ -154,13 +152,16 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         }
     );
 
-    let formattedResults = {
+    var formattedResults = {
         projectId: projectId,
         testcycle: cycleId,
         logs: testLogs,
     };
 
-    emitEvent("ChatOpsEvent", { message: "Results formatted successfully for ReadyAPI." });
+    emitEvent("ChatOpsEvent", { ResultsFormatSuccess: "Results formatted successfully for ReadyAPI." });
     console.log("[INFO]: Results formatted successfully for ReadyAPI.");
     emitEvent("UpdateQTestWithFormattedResults", formattedResults);
 };
+function htmlEntities(str) {
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}

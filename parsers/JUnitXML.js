@@ -1,6 +1,4 @@
 import { Webhooks } from "@qasymphony/pulse-sdk";
-import request from "request";
-import xml2js from "xml2js";
 
 // DO NOT EDIT exported "handler" function is the entrypoint
 exports.handler = async function ({ event: body, constants, triggers }, context, callback) {
