@@ -1,9 +1,14 @@
-const { Webhooks } = require('@qasymphony/pulse-sdk');
+import { Webhooks } from "@qasymphony/pulse-sdk";
+import request from "request";
+import xml2js from "xml2js";
 
-exports.handler = function ({ event: body, constants, triggers }, context, callback) {
+// DO NOT EDIT exported "handler" function is the entrypoint
+exports.handler = async function ({ event: body, constants, triggers }, context, callback) {
     function emitEvent(name, payload) {
-        let t = triggers.find(t => t.name === name);
-        return t ? new Webhooks().invoke(t, payload) : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
+        let t = triggers.find((t) => t.name === name);
+        return t
+            ? new Webhooks().invoke(t, payload)
+            : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
     }
 
     let testRun;
@@ -14,29 +19,36 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         if (!Array.isArray(arr)) {
             return;
         }
-        console.log('[INFO]: Log Level - ' + logLevel);
         for (let r = 0, rlen = arr.length; r < rlen; r++) {
             let currentSuite = arr[r];
-            if (currentSuite.hasOwnProperty('test-case')) {
-                let currentCases = Array.isArray(currentSuite['test-case']) ? currentSuite['test-case'] : [currentSuite['test-case']];
+            if (currentSuite.hasOwnProperty("test-case")) {
+                let currentCases = Array.isArray(currentSuite["test-case"])
+                    ? currentSuite["test-case"]
+                    : [currentSuite["test-case"]];
                 for (let c = 0, clen = currentCases.length; c < clen; c++) {
                     let currentCase = currentCases[c];
                     let className = currentCase.$.name;
-                    console.log('Case Name: ' + className);
-                    let moduleNames = currentCase.$.classname.split('.');
+                    console.log("Case Name: " + className);
+                    let moduleNames = currentCase.$.classname.split(".");
                     let classStatus = currentCase.$.result;
-                    let startTime = lastEndTime === 0 ? new Date(Date.parse(testRun.$['start-time'].replace(' ', '').replace('Z', '.000Z'))) : lastEndTime.toISOString();
-                    let interim = parseFloat(currentCase.$.duration);
-                    let endTime = new Date(Date.parse(startTime) + interim).toISOString();
+                    console.log("----AAAAA----");
 
-                    let note = '';
-                    let stack = '';
+                    let startTime =
+                        lastEndTime === 0
+                            ? new Date(Date.parse(testRun.$["start-time"].replace(" ", "").replace("Z", ".000Z")))
+                            : lastEndTime.toISOString();
+
+                    let interim = parseFloat(currentCase.$.duration);
+                    let endTime = new Date(Date.parse(startTime) + interim);
+
+                    let note = "";
+                    let stack = "";
                     let testFailure = currentCase.failure;
                     if (testFailure) {
                         console.log(testFailure.message);
                         note = testFailure.message;
-                        console.log(testFailure['stack-trace']);
-                        stack = testFailure['stack-trace'];
+                        console.log(testFailure["stack-trace"]);
+                        stack = testFailure["stack-trace"];
                     }
 
                     console.log(classStatus);
@@ -47,16 +59,16 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                         attachments: [],
                         note: note,
                         exe_start_date: startTime,
-                        exe_end_date: endTime,
+                        exe_end_date: endTime.toISOString(),
                         automation_content: htmlEntities(className),
-                        module_names: moduleNames
+                        module_names: moduleNames,
                     };
 
-                    if (stack !== '') {
+                    if (stack !== "") {
                         testLog.attachments.push({
                             name: `${className}.txt`,
                             data: Buffer.from(stack).toString("base64"),
-                            content_type: "text/plain"
+                            content_type: "text/plain",
                         });
                     }
 
@@ -64,50 +76,61 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                     lastEndTime = endTime;
                 }
             }
-            if (currentSuite.hasOwnProperty('test-suite')) {
-                let subSuite = Array.isArray(currentSuite['test-suite']) ? currentSuite['test-suite'] : [currentSuite['test-suite']];
+            if (currentSuite.hasOwnProperty("test-suite")) {
+                let subSuite = Array.isArray(currentSuite["test-suite"])
+                    ? currentSuite["test-suite"]
+                    : [currentSuite["test-suite"]];
                 getCases(subSuite);
             }
         }
     }
 
-    let payload = body;
-    let projectId = payload.projectId;
-    let cycleId = payload.testcycle;
-    let testResults = Buffer.from(payload.result, 'base64').toString('utf8');
+    try {
+        let payload = body;
+        let projectId = payload.projectId;
+        let cycleId = payload.testcycle;
+        let testResults = Buffer.from(payload.result, "base64").toString("utf8");
 
-    let parseString = require('xml2js').parseString;
+        xml2js.parseString(
+            testResults,
+            {
+                preserveChildrenOrder: true,
+                explicitArray: false,
+                explicitChildren: false,
+                emptyTag: "...",
+            },
+            function (err, result) {
+                if (err) {
+                    emitEvent("ChatOpsEvent", { Error: "Unexpected Error Parsing XML Document: " + err });
+                    console.error("[ERROR]: Failed to parse XML - ", err);
+                } else {
+                    console.log("[INFO]: XML converted to JSON: \n" + JSON.stringify(result));
+                    testRun = result["test-run"];
+                    if (result["test-run"]["test-suite"]) {
+                        let testsuites = Array.isArray(result["test-run"]["test-suite"])
+                            ? result["test-run"]["test-suite"]
+                            : [result["test-run"]["test-suite"]];
+                        getCases(testsuites);
+                    } else {
+                        console.log("[INFO]: Test Suites collection is empty, skipping.");
+                    }
+                }
 
-    parseString(testResults, {
-        preserveChildrenOrder: true,
-        explicitArray: false,
-        explicitChildren: false,
-        emptyTag: "..."
-    }, function (err, result) {
-        if (err) {
-            emitEvent('ChatOpsEvent', { Error: "Unexpected Error Parsing XML Document: " + err });
-            console.log(err);
-        } else {
-            console.log('[INFO]: XML converted to JSON: \n' + JSON.stringify(result));
-            testRun = result['test-run'];
-            if (result['test-run']['test-suite']) {
-                let testsuites = Array.isArray(result['test-run']['test-suite']) ? result['test-run']['test-suite'] : [result['test-run']['test-suite']];
-                getCases(testsuites);
-            } else {
-                console.log('Test Suites collection is empty, skipping.');
+                let formattedResults = {
+                    projectId: projectId,
+                    testcycle: cycleId,
+                    logs: testLogs,
+                };
+
+                emitEvent("UpdateQTestWithResults", formattedResults);
             }
-        }
-
-        let formattedResults = {
-            "projectId": projectId,
-            "testcycle": cycleId,
-            "logs": testLogs
-        };
-
-        emitEvent('UpdateQTestWithResults', formattedResults);
-    });
+        );
+    } catch (error) {
+        console.error("[ERROR]: An unexpected error occurred -", error);
+        emitEvent("ChatOpsEvent", { Error: "An unexpected error occurred: " + error.message });
+    }
 };
 
 function htmlEntities(str) {
-    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }

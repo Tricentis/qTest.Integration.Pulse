@@ -1,4 +1,4 @@
-const { Webhooks } = require('@qasymphony/pulse-sdk');
+import { Webhooks } from "@qasymphony/pulse-sdk";
 
 /*
  * call source: delivery script from CI Tool (Jenkins, Bamboo, TeamCity, CircleCI, etc), Launch, locally executed
@@ -37,10 +37,12 @@ const { Webhooks } = require('@qasymphony/pulse-sdk');
  * - Formatted result sent to the trigger "UpdateQTestWithResults"
  * - ChatOpsEvent channel (if any) notified of the result or error
  */
-exports.handler = async function({ event: body, constants, triggers }, context, callback) {
+exports.handler = async function ({ event: body, constants, triggers }, context, callback) {
     function emitEvent(name, payload) {
-        let t = triggers.find(t => t.name === name);
-        return t ? new Webhooks().invoke(t, payload) : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
+        let t = triggers.find((t) => t.name === name);
+        return t
+            ? new Webhooks().invoke(t, payload)
+            : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
     }
 
     try {
@@ -48,10 +50,9 @@ exports.handler = async function({ event: body, constants, triggers }, context, 
         let projectId = payload.projectId;
         let cycleId = payload.testcycle;
 
-        let testResults = JSON.parse(Buffer.from(payload.result, 'base64').toString('utf8'));
-
+        let testResults = JSON.parse(Buffer.from(payload.result, "base64").toString("utf8"));
+        console.log(testResults.results);
         let testLogs = [];
-
         for (let result of testResults.results) {
             for (let suite of result.suites) {
                 for (let test of suite.tests) {
@@ -63,35 +64,36 @@ exports.handler = async function({ event: body, constants, triggers }, context, 
                         name: test.title,
                         automation_content: test.uuid,
                         properties: [],
-                        note: test.state == 'failed' ? test.err.estack : ''
+                        note: test.state == "failed" ? test.err.estack : "",
                     };
+                    let testStepLogs = [
+                        {
+                            order: 1,
+                            description: test.title,
+                            expected_result: test.title,
+                            actual_result: test.title,
+                            status: test.state,
+                        },
+                    ];
 
-                    let testStepLogs = [{
-                        order: 1,
-                        description: test.title,
-                        expected_result: test.title,
-                        actual_result: test.title,
-                        status: test.state
-                    }];
-
-                    reportingLog.description = test.code.replace('\\n', '<br />');
+                    reportingLog.description = test.code.replace("\\n", "<br />");
                     reportingLog.test_step_logs = testStepLogs;
-                    reportingLog.featureName = suite.title + '.feature';
+                    reportingLog.featureName = suite.title + ".feature";
                     testLogs.push(reportingLog);
                 }
             }
         }
 
         let formattedResults = {
-            "projectId": projectId,
-            "testcycle": cycleId,
-            "logs": testLogs
+            projectId: projectId,
+            testcycle: cycleId,
+            logs: testLogs,
         };
 
-        console.log('[INFO]: Cypress test successfully parsed.');
-        emitEvent('UpdateQTestWithResults', formattedResults);
+        console.log("[INFO]: Cypress test successfully parsed.");
+        emitEvent("UpdateQTestWithResults", formattedResults);
     } catch (error) {
-        emitEvent('ChatOpsEvent', { message: 'Error processing Cypress test results: ' + error });
+        emitEvent("ChatOpsEvent", { message: "Error processing Cypress test results: " + error });
         console.error(`[ERROR]: Error processing Cypress test results: ${error}`);
     }
 };
