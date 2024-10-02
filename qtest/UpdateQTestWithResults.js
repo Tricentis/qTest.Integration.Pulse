@@ -53,28 +53,31 @@
  * Pulse events called: ChatOpsEvent
  */
 
-const axios = require('axios');
-const { Webhooks } = require('@qasymphony/pulse-sdk');
+const axios = require("axios");
+const { Webhooks } = require("@qasymphony/pulse-sdk");
 
-exports.handler = async function ({ event: body, constants, triggers }, context, callback) {
+// DO NOT EDIT exported "handler" function is the entrypoint
+exports.handler = async function ({ event, constants, triggers }, context, callback) {
     function emitEvent(name, payload) {
-        let t = triggers.find(t => t.name === name);
-        return t ? new Webhooks().invoke(t, payload) : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
+        let t = triggers.find((t) => t.name === name);
+        return t
+            ? new Webhooks().invoke(t, payload)
+            : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
     }
     let queueId = 0;
-    
+
     console.log(`[INFO]: About to process ${body.logs.length} results...`);
-    emitEvent('ChatOpsEvent', { message: `[INFO]: About to process ${body.logs.length} results...`});
+    emitEvent("ChatOpsEvent", { message: `[INFO]: About to process ${body.logs.length} results...` });
 
     let standardHeaders = {
-        'Content-Type': 'application/json',
-        'Authorization': `bearer ${constants.QTEST_TOKEN}`
-    }
+        "Content-Type": "application/json",
+        Authorization: `bearer ${constants.QTEST_TOKEN}`,
+    };
 
     // Axios interceptor for global error handling
     axios.interceptors.response.use(
-        response => response,
-        error => {
+        (response) => response,
+        (error) => {
             console.error(error);
             return Promise.reject(error);
         }
@@ -82,31 +85,38 @@ exports.handler = async function ({ event: body, constants, triggers }, context,
 
     async function createLogsAndTCs() {
         let opts = {
-            url: 'https://' + constants.ManagerURL + '/api/v3/projects/' + body.projectId + '/auto-test-logs?type=automation',
-            method: 'post',
+            url:
+                "https://" +
+                constants.ManagerURL +
+                "/api/v3/projects/" +
+                body.projectId +
+                "/auto-test-logs?type=automation",
+            method: "post",
             headers: standardHeaders,
             data: {
                 test_cycle: body.testcycle,
-                test_logs: body.logs
-            }
+                test_logs: body.logs,
+            },
         };
 
         try {
             const response = await axios(opts);
-            if (response.data.type == 'AUTOMATION_TEST_LOG') {
+            if (response.data.type == "AUTOMATION_TEST_LOG") {
                 queueId = response.data.id;
-                emitEvent('ChatOpsEvent', { message: '[INFO]: Results queued successfully for id: ' + response.data.id});
-                console.log('[INFO]: Results queued successfully for id: ' + response.data.id);
-                emitEvent('CheckProcessingQueue', {'queueId': queueId});
+                emitEvent("ChatOpsEvent", {
+                    message: "[INFO]: Results queued successfully for id: " + response.data.id,
+                });
+                console.log("[INFO]: Results queued successfully for id: " + response.data.id);
+                emitEvent("CheckProcessingQueue", { queueId: queueId });
             } else {
-                emitEvent('ChatOpsEvent', { message: 'Unable to upload test results.' });
-                console.error('[ERROR]: Unable to upload test results. See logs for details.');
-                emitEvent('ChatOpsEvent', { message: '[ERROR]: ' + JSON.stringify(response.data) });
+                emitEvent("ChatOpsEvent", { message: "Unable to upload test results." });
+                console.error("[ERROR]: Unable to upload test results. See logs for details.");
+                emitEvent("ChatOpsEvent", { message: "[ERROR]: " + JSON.stringify(response.data) });
             }
         } catch (error) {
             console.error(error);
         }
-    };
+    }
 
     await createLogsAndTCs();
-}
+};
