@@ -1,5 +1,4 @@
-
-const { Webhooks } = require('@qasymphony/pulse-sdk');
+import { Webhooks } from "@qasymphony/pulse-sdk";
 
 /**
  * call source: delivery script from CI Tool (Jenkins, Bamboo, TeamCity, CircleCI, etc), Launch, locally executed
@@ -21,8 +20,10 @@ const { Webhooks } = require('@qasymphony/pulse-sdk');
 
 exports.handler = function ({ event: body, constants, triggers }, context, callback) {
     function emitEvent(name, payload) {
-        let t = triggers.find(t => t.name === name);
-        return t ? new Webhooks().invoke(t, payload) : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
+        let t = triggers.find((t) => t.name === name);
+        return t
+            ? new Webhooks().invoke(t, payload)
+            : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
     }
 
     try {
@@ -30,7 +31,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         let projectId = payload.projectId;
         let cycleId = payload.testcycle;
 
-        let data = Buffer.from(payload.result, 'base64').toString('utf8');
+        let data = Buffer.from(payload.result, "base64").toString("utf8");
         let testResults = JSON.parse(data);
 
         let testLogs = [];
@@ -38,8 +39,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         testResults.forEach(function (feature) {
             let featureName = feature.name;
             feature.elements.forEach(function (testCase) {
-                if (!testCase.name)
-                    testCase.name = "Unnamed";
+                if (!testCase.name) testCase.name = "Unnamed";
 
                 let TCStatus = "passed";
 
@@ -48,7 +48,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                     exe_end_date: new Date(),
                     module_names: [featureName],
                     name: testCase.name,
-                    automation_content: feature.uri + "#" + testCase.name
+                    automation_content: feature.uri + "#" + testCase.name,
                 };
 
                 let testStepLogs = [];
@@ -73,11 +73,18 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                         if (status == "undefined") {
                             TCStatus = "skipped";
                             status = "skipped";
-                            emitEvent('ChatOpsEvent', { message: '[INFO]: Cucumber Parser - Step result not found: ' + step.name + '; marking as skipped.' });
-                            console.log(`[INFO]: Cucumber Parser - Step result not found: ${step.name}; marking as skipped.`);
+                            emitEvent("ChatOpsEvent", {
+                                message:
+                                    "[INFO]: Cucumber Parser - Step result not found: " +
+                                    step.name +
+                                    "; marking as skipped.",
+                            });
+                            console.log(
+                                `[INFO]: Cucumber Parser - Step result not found: ${step.name}; marking as skipped.`
+                            );
                         }
-
-                        if ("embeddings" in step) {
+                        console.log(step);
+                        if (step.embeddings) {
                             console.log('[INFO]: "Step has screenshot attachment, adding...');
 
                             let attCount = 0;
@@ -85,8 +92,8 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                                 attCount++;
                                 let attachment = {
                                     name: step.name + " Attachment " + attCount,
-                                    "content_type": att.mime_type,
-                                    data: att.data
+                                    content_type: att.mime_type,
+                                    data: att.data,
                                 };
                                 console.log("Attachment: " + attachment.name);
 
@@ -96,16 +103,16 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
 
                         let expected = step.keyword + " " + step.name;
 
-                        if ("location" in step.match) {
+                        if (step.match && step.match.location) {
                             expected = step.match.location;
                         }
 
                         let stepLog = {
                             order: order,
-                            description: step.keyword + ' ' + step.name,
+                            description: step.keyword + " " + step.name,
                             expected_result: step.name,
                             actual_result: actual,
-                            status: status
+                            status: status,
                         };
 
                         testStepLogs.push(stepLog);
@@ -123,16 +130,17 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         });
 
         let formattedResults = {
-            "projectId": projectId,
-            "testcycle": cycleId,
-            "logs": testLogs
+            projectId: projectId,
+            testcycle: cycleId,
+            logs: testLogs,
         };
 
-        emitEvent('ChatOpsEvent', { message: '[INFO]: Cucumber results successfully parsed.' });
-        console.log('[INFO]: Cucumber results successfully parsed.');
-        emitEvent('UpdateQTestWithResults', formattedResults);
+        emitEvent("ChatOpsEvent", { message: "[INFO]: Cucumber results successfully parsed." });
+        console.log("[INFO]: Cucumber results successfully parsed.");
+        emitEvent("UpdateQTestWithResults", formattedResults);
     } catch (error) {
-        emitEvent('ChatOpsEvent', { message: '[ERROR]: Error processing Java Cucumber results: ' + error });
+        emitEvent("ChatOpsEvent", { message: "[ERROR]: Error processing Java Cucumber results: " + error });
         console.error(`[ERROR]: Error processing Java Cucumber results: ${error}`);
     }
+    console.log("WORKS");
 };
