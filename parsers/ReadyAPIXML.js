@@ -9,17 +9,17 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
         return t ? new Webhooks().invoke(t, payload) : console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
     }
                 
-        var payload = body;
-        var projectId = payload.projectId;
-        var cycleId = payload.testcycle;
-        var testLogs = [];
+        let payload = body;
+        let projectId = payload.projectId;
+        let cycleId = payload.testcycle;
+        let testLogs = [];
 
         let testResults = Buffer.from(payload.result, 'base64').toString('utf8');
 
-        var parseString = require('xml2js').parseString;
-        var startTime = '';
-        var endTime = '';
-        var lastEndTime = 0;
+        let parseString = require('xml2js').parseString;
+        let startTime = '';
+        let endTime = '';
+        let lastEndTime = 0;
 
         parseString(testResults, {
             preserveChildrenOrder: true,
@@ -30,19 +30,19 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                 emitEvent('ChatOpsEvent', { message: "Unexpected Error Parsing XML Document: " + err }); 
                 console.log('[ERROR]: ' + err);
             } else {
-                var classStatus = '';
-                var testsuites = Array.isArray(result.testSuiteResults['testSuite']) ? result.testSuiteResults['testSuite'] : [result.testSuiteResults['testSuite']];
+                let classStatus = '';
+                let testsuites = Array.isArray(result.testSuiteResults['testSuite']) ? result.testSuiteResults['testSuite'] : [result.testSuiteResults['testSuite']];
                 testsuites.forEach(function(testsuite) {
                     lastEndTime = 0;
-                    suiteName = testsuite.testSuiteName;
+                    let suiteName = testsuite.testSuiteName;
                     console.log('[INFO]: Suite Name: ' + suiteName);
-                    var testcases = Array.isArray(testsuite.testRunnerResults['testCase']) ? testsuite.testRunnerResults['testCase'] : [testsuite.testRunnerResults['testCase']];
+                    let testcases = Array.isArray(testsuite.testRunnerResults['testCase']) ? testsuite.testRunnerResults['testCase'] : [testsuite.testRunnerResults['testCase']];
                     testcases.forEach(function(testcase) {
                         className = testcase.testCaseName;
                         console.log('[INFO]: Class Name: ' + className);
                         classId = testcase.testCaseId;
-                        var moduleNames = [suiteName];
-                        var stack = '';
+                        let moduleNames = [suiteName];
+                        let stack = '';
 
                         console.log('[INFO]: Class Status: ' + testcase.status);
 
@@ -55,11 +55,11 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                         }
                         console.log('[INFO]: Translated Status: ' + classStatus);
 
-                        var teststeps = Array.isArray(testcase.testStepResults['result']) ? testcase.testStepResults['result'] : [testcase.testStepResults['result']];
-                        var teststepparams = Array.isArray(testcase.testStepParameters['parameters']) ? testcase.testStepParameters['parameters'] : [testcase.testStepParameters['parameters']];
-                        var testStepLogs = [];
+                        let teststeps = Array.isArray(testcase.testStepResults['result']) ? testcase.testStepResults['result'] : [testcase.testStepResults['result']];
+                        let teststepparams = Array.isArray(testcase.testStepParameters['parameters']) ? testcase.testStepParameters['parameters'] : [testcase.testStepParameters['parameters']];
+                        let testStepLogs = [];
                         teststeps.forEach(function(teststep) {
-                            var stepStatus = '';
+                            let stepStatus = '';
 
                             teststepparams.forEach(function(teststepparam){
                                 if(teststepparam.testStepName == teststep.name) {
@@ -85,7 +85,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                             }
 
                             if(stepStatus == 'FAILED'){                                
-                                var testFailure = Array.isArray(testcase.failedTestSteps['error']) ? testcase.failedTestSteps['error'] : [testcase.failedTestSteps['error']];
+                                let testFailure = Array.isArray(testcase.failedTestSteps['error']) ? testcase.failedTestSteps['error'] : [testcase.failedTestSteps['error']];
                                 testFailure.forEach(function(failure) {
                                     if(failure !== undefined) {
                                         if(failure.testStepName == teststep.name) {
@@ -95,7 +95,7 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                                 });
                             }
 
-                            var testStepLog = {
+                            let testStepLog = {
                                 order: (teststep.order - 1),
                                 description: teststep.name,
                                 expected_result: testStepParam,
@@ -116,9 +116,9 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
                         })
 
 
-                        var note = '';
+                        let note = '';
 
-                        var testLog = {
+                        let testLog = {
                             status: classStatus,
                             name: className,
                             attachments: [],
@@ -138,13 +138,13 @@ exports.handler = function ({ event: body, constants, triggers }, context, callb
             }
         });
 
-        var formattedResults = {
+        let formattedResults = {
             "projectId" : projectId,
             "testcycle" : cycleId,
             "logs" : testLogs
         };
 
-        emitEvent('ChatOpsEvent', { ResultsFormatSuccess: "Results formatted successfully for ReadyAPI."}); 
+        emitEvent('ChatOpsEvent', { message: "Results formatted successfully for ReadyAPI."}); 
         console.log('[INFO]: Results formatted successfully for ReadyAPI.');
         emitEvent('UpdateQTestWithFormattedResults', formattedResults );
 
