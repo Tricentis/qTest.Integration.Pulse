@@ -6,7 +6,7 @@
  *     "message": "insert message contents here"
  *   }
  * constants example:
- *  ChatOpsWebhook: https://hooks.slack.com/services/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
+ *  ChatOpsWebhook: https://hooks.slack.com/services/replace/with/your/webhook-id
  * outputs: the "message" object in the payload will be sent to a configured Slack webhook
  * prerequisites: configured webhook connector for Slack
  * external documentation: https://api.slack.com/incoming-webhooks 

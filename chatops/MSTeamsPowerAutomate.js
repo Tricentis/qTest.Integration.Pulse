@@ -6,7 +6,7 @@
     *     "message": "insert message contents here"
     *   }
  * Constants example:
-    * TeamsWebhook: https://prod-209.locale.logic.azure.com:443/workflows/7460761ff1714e0883f4896719d78774/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=kZRjea7kK9mswYwpjEUpakswi1bGpaWQeIstK4PBcsU
+    * TeamsWebhook: https://replace-with-your-webhook-url.azure.com:443/workflows/replace-with-your-workflow-id/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=replace-with-your-signature
  * Outputs:
     * The "message" object in the payload will be sent to a configured Microsoft Power Automate webhook
  * Prerequisites: configured Power Automate webhook connector for Microsoft Teams

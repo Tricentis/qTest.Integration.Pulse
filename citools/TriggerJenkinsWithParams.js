@@ -6,11 +6,11 @@
  * call source: other Pulse Actions via emitEvent()
  * payload example: { tag: "tag value" }
  * constants example:
- *  JenkinsUserName: admin
- *  JenkinsAPIToken: fa96ad2f-5e1c-4562-a14d-98a94ba9bab1
+ *  JenkinsUserName: your-username
+ *  JenkinsAPIToken: replace-with-your-api-token
  *  JenkinsURL: jenkins.yourdomain.com:8080
  *  JenkinsParamJob: CucumberBuildJob
- *  JenkinsJobToken: fa96ad2f-5e1c-4562-a14d-98a94ba9bab1
+ *  JenkinsJobToken: replace-with-your-job-token
  * outputs:
  *  The specified build job with parameters will be triggered in Jenkins
  */

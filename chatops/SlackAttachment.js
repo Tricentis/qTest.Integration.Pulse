@@ -9,8 +9,8 @@ const axios = require('axios');
  * Call source: other Pulse Actions via emitEvent()
  * Payload example: any text payload
  * Constants example:
- *  SlackToken: xoxp-3649058275-479536623220-742802261858-etcetcetcetcetcetc
- *  SlackChannelID: GFT63D000
+ *  SlackToken: replace-with-your-slack-token
+ *  SlackChannelID: replace-with-your-slack-channel-id
  * Outputs:
  * - The text object in the payload will be sent to a configured Slack webhook
  * Prerequisites: configured token and channel for Slack
