@@ -22,7 +22,8 @@
     * https://learn.microsoft.com/en-us/connectors/teams/?tabs=text1%2Cdotnet#microsoft-teams-webhook
  */
 
-const axios = require('axios');
+import axios from 'axios';
+
 exports.handler = async function ({ event: body, constants, triggers }, context, callback) {
     try {
         const response = await axios.post(constants.TeamsWebhook, {
