@@ -6,8 +6,8 @@
  * call source: other Pulse Actions via emitEvent()
  * payload example: N/A, trigger only
  * constants example:
- *  BambooUserName: admin
- *  BambooPassword: password
+ *  BambooUserName: your-username
+ *  BambooPassword: your-password
  *  BambooURL: bamboo.yourdomain.com:8085
  *  BambooProjectCode: CucumberBuildJob
  * outputs:

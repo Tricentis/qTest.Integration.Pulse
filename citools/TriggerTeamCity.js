@@ -6,11 +6,11 @@
  * call source: other Pulse Actions via emitEvent()
  * payload example: N/A, trigger only
  * constants example:
- *  TeamCityUserName: admin
- *  TeamCityPassword: password
+ *  TeamCityUserName: your-username
+ *  TeamCityPassword: your-password
  *  TeamCityURL: teamcity.yourdomain.com
  *  TeamCityPort: 8111
- *  TeamCityBuildCode: fa96ad2f
+ *  TeamCityBuildCode: replace-with-your-build-code
  * outputs:
  *  The specified build job will be triggered in Team City
  */
