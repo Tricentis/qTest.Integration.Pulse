@@ -1,48 +1,359 @@
-<p align="center"><img src="https://github.com/Tricentis/qTest.Integration.Pulse/blob/master/blob/qas-ico-logo-150x150.png"></p>
+<p align="center">
+  <img src="blob/qas-ico-logo-150x150.png" alt="qTest Pulse logo" width="120">
+</p>
 
 # qTest Pulse Community Marketplace
-[![Platform: qTest Pulse](https://img.shields.io/badge/platform-qTest%20Pulse-blue.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACWBAMAAADOL2zRAAAAD1BMVEX4XQD1XAD4XQD4XQD4XQCYqnrWAAAABHRSTlMaAGDUaHSsCwAAAgVJREFUaN7t2kuSgyAQBuAmzgEkJ9DgASzMAVLQ9z/TLMZoQDE8/kxc0KssUl8BWjQtTfIZ7UVNnBpWd2IRaPmhOC80+VY2xWzJtdp8itnQq1VEMWvxYl24LMbVut4LLdstluLS0GK2ioc1D4wgw2LWf1Z7B1hWSEnlD3F5lCTlALGMkISZIrMVkkBTZO4kyQZkPSS1A8gygkDLxcyCriiKe2pg1kg/MOtBA8wyUAv2GNnuWHaKiXuMpW9xobZWOHW+iW1Gpf30FBObREh7CSUy/DxB2207Ppojy/ZJljcw8jfapFAH1phGeXuya/WJljtJ8pNcUrRhK3W5vHzoWqmUu/gfs3Sy1VSrWtX6H+uiNtn6JvKs3dLG2y5jLRUsVpKtQMXlpr1IqzmsO9Os0CHPfNkKHRjtl63gubRa1apWtapVrWpVq1qnt856xkRayDM5su4IfYzPqYcCFw7ud62y+rHLrGs3H53t1Pl/eYnCetv9qlytalXrnJZBWgJnWaCVfN9xZI1AywAt2+OsskkS4wZWcP/41rIF2Oa+1upbR+9j7wZ35x55ygwNvN82J73DfwD7FEZg/0QP7euA9ZtYAeyDAfbnjMC+oR7czwRaMA3s/+rgfWmQfrkR2MfXz1arECsP63sUaz9m4bs/F2/4PtGyF/aZBpee2KGYWvt9s6e5JudfUo0ynUUmczsAAAAASUVORK5CYII=&style=flat)](https://www.tricentis.com/products/agile-dev-testing-qtest/powering-agile-devops-workflows-qtest-pulse/) [![Codebase: node.js](https://img.shields.io/badge/codebase-node.js-026e00.svg?logo=node.js&style=flat)](https://nodejs.org) [![License: MIT](https://img.shields.io/badge/license-MIT-A42E2B.svg?style=flat)](https://en.wikipedia.org/wiki/MIT_License)
 
-Repository of open-source qTest Pulse rules powered by the community.  [What is qTest Pulse?](https://www.tricentis.com/products/agile-dev-testing-qtest/powering-agile-devops-workflows-qtest-pulse/)
+[![Platform: qTest Pulse](https://img.shields.io/badge/platform-qTest%20Pulse-blue.svg)](https://documentation.tricentis.com/qtest/od/en/content/pulse/qtest_pulse_quick_start_guide.htm)
+[![Codebase: Node.js](https://img.shields.io/badge/codebase-Node.js-026e00.svg)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-A42E2B.svg)](LICENSE.md)
 
-* These rules standardize Base64 Encoding the results payload to the parser endpoint for security and compatibility.
-* These rules utilize standardized nomenclature for variables, Constants, and certain Triggers.
-* The stock rules in the deprecated [Pulse v9.1 repository](https://github.com/QASymphony/PulseRules_v9.1) mentioned by the documentation are NOT compatible with the rules in this repository due to the above updated standards and nomenclatures.
-* qTest Pulse and qTest Launch Universal Agent parsers use different API endpoints and thus are NOT compatible.
+Community-maintained, standalone JavaScript Actions and supporting scripts for
+qTest Pulse. The repository covers automation-result delivery and parsing,
+qTest result submission, CI pipeline dispatch, ChatOps notifications, and
+selected qTest integrations.
 
-## How It Works
+These are open-source examples, not a substitute for supported product
+integrations. Review the [software disclaimer](DISCLAIMER.md), test in a
+non-production Pulse project, and adapt permissions and field mappings to your
+environment.
 
-<p align="center"><img width="90%" src="https://github.com/Tricentis/qTest.Integration.Pulse/blob/master/blob/pulse-flow.png"></p>
+## Start Here
 
-## Example Workflow Overviews
+| Goal | Documentation |
+| --- | --- |
+| Upgrade an existing v2 installation | [Migrating to v3](docs/MIGRATING_TO_V3.md) |
+| Review release changes | [Changelog](CHANGELOG.md) |
+| Submit automated test results to qTest | [Results quick start](#results-pipeline-quick-start) |
+| Choose and configure a parser | [Parser catalog](parsers/README.md) |
+| Configure the dependency-free delivery script | [Delivery guide](delivery/README.md) |
+| Configure qTest submission and queue monitoring | [qTest results guide](qtest/README.md) |
+| Trigger a CI pipeline | [CI provider guide](citools/README.md) |
+| Send neutral notifications to Slack and Teams | [ChatOps guide](chatops/README.md) |
+| Understand every repository item | [Repository catalog](docs/REPOSITORY_CATALOG.md) |
+| Reconcile an ambiguous downstream 5xx | [Invocation reconciliation](docs/PULSE_INVOCATION_RECONCILIATION.md) |
 
-<p align="center"><img width="100%" src="https://github.com/Tricentis/qTest.Integration.Pulse/blob/master/blob/Pulse%20&%20Scenario%20Workflow%20Diagram.png?raw=true"></p>
+The official [qTest Pulse Quick Start
+Guide](https://documentation.tricentis.com/qtest/od/en/content/pulse/qtest_pulse_quick_start_guide.htm)
+explains Pulse access and the product UI. The [qTest API documentation](https://qtest.dev.tricentis.com/)
+is the canonical API reference.
 
-<p align="center"><img width="100%" src="https://github.com/Tricentis/qTest.Integration.Pulse/blob/master/blob/Pulse%20&%20Tosca%20Workflow%20Diagram.png?raw=true"></p>
-* It should be noted that this integration is much different than either the native qTest or the Launch Universal Agent integrations with Tosca, and thus they are NOT cross-compatible.
+## What Is Pulse, and What Does It Do?
 
-## Getting Started
+qTest Pulse is an event-driven integration runner hosted alongside qTest. It
+receives an event, runs JavaScript in response, and can call an external API or
+emit another Pulse event. In practical terms, it is the glue between systems:
 
-For a BDD workflow, please review the [Pulse documentation](https://support-hub.tricentis.com/open?id=manual&lang=en&path=%2Fqtest%2F10500%2Fen%2Fcontent%2Fpulse%2Fqtest_pulse_quick_start_guide.htm&product=qtest&sessionRotationTrigger=false&type=product_manual) for examples of how to set up a workflow and use Constants.  Please bear in mind that the stock rules in the [Pulse v9.1 repository](https://github.com/QASymphony/PulseRules_v9.1) mentioned by the Pulse documentation are NOT compatible with the rules in this repository due to updated standards and nomenclatures.
+- a source-control webhook can ask Pulse to start a CI pipeline;
+- a CI job can send a result file to a Pulse parser;
+- a parser can translate that tool-specific document into qTest automation
+  logs;
+- a qTest Action can submit those logs and monitor their processing queue; and
+- any stage can emit one neutral notification event for Slack and Teams.
 
-For a webinar that features a live demonstration of the above workflow, please go [here](https://www.tricentis.com/resources/improve-quality-in-devops-pipelines-with-agile-test-management/).
+Pulse does not automatically understand a JUnit, UFT, Cypress, or other result
+file. An Action in this repository supplies that translation. Pulse also does
+not run tests by itself unless an Action calls a CI provider that runs them, and
+it is not the same ingestion path as qTest Launch/Universal Agent.
 
-### Identify Your Workflow
+A useful mental model is:
 
-It's a good idea to sit down and map out your workflow on a whiteboard.  You will want to accmplish the following steps:
+```text
+something happened
+        |
+        v
+Trigger receives an event
+        |
+        v
+Rule selects one or more Actions
+        |
+        v
+Action validates, transforms, calls an API, or emits another Trigger
+```
 
-#### Begin Your Workflow
+Each Action execution has its own Pulse execution record, payload, standard
+output, standard error, and response. When one Action emits another Trigger,
+Pulse creates a child execution. That is why this repository propagates a
+`correlationId`: one business operation may cross several independent Pulse
+executions before qTest finishes processing it.
 
-In a true agile environment with a CI/CD or DevOps workflow, most likely you will be triggering your builds with some sort of repository action, whether this be a simple push/commit with a smaller development environment, or an approval or merge for larger organizations.  Most Repositories (Github, Bitbucket, Gitlab, etc) maintain a feature that will allow the call of a webhook when one or more of these actions occur.  Sometimes there will be a native integration to kick off the CI/CD pipeline, but when there is not, Pulse can take charge and kick off your CI/CD pipeline via an API call.  In this case you will want to look in the [CI Tool Integrations](https://github.com/Tricentis/qTest.Integration.Pulse/tree/master/citools) for Actions that kick off CI/CD pipelines.  In Pulse, set up a Trigger (webhook) and an Action (script) and create a Rule to link the two.  Look for the Constants needed in the documentation block of the Action script and fill them in as needed in Pulse.
+Pulse objects are scoped to the selected qTest project. Copying an Action's
+source alone is therefore not enough; the project must also contain the
+Constants and exact downstream Trigger names that source expects, plus Rules
+that connect each Trigger to the intended Action or Actions.
 
-#### Deliver and Parse Testing Tool or Framework Results
+## Pulse Concepts Used Here
 
-This is key to picking out or developing your own parser.  The output of the parser creates a standardized construct that is consumable by a qTest Manager API.  In order to leverage a parser, you will need to deliver the framework or tool results file (expecting JSON or XML) to the parser webhook endpoint with a [delivery script](https://github.com/Tricentis/qTest.Integration.Pulse/tree/master/delivery) executed by your chosen CI/CD tool.  These scripts may also be used in Launch to bypass the Universal Agent parsers and send the results to Pulse.  You will need to edit the delivery script to include the qTest Project ID, target the top level Test Cycle ID, Pulse framework parser webhook endpoint, and location of the results output file.  You can find the qTest Project and Test Cycle IDs in the URL when you select your chosen Test Cycle in qTest Manager, see below.
+Pulse workflows are assembled from four project-scoped objects:
 
-<p align="center"><img src="https://github.com/Tricentis/qTest.Integration.Pulse/blob/master/blob/qTestPrjTCIds.png?raw=true"></p>
+- A **Trigger** is an inbound webhook or an event that another Action can emit.
+- An **Action** is one standalone JavaScript program.
+- A **Rule** connects one Trigger to one or more Actions.
+- A **Constant** supplies project-specific configuration to Actions.
 
-There is a [selection of parsers](https://github.com/Tricentis/qTest.Integration.Pulse/tree/master/parsers) available, but they are easy to create as well.  Create a Trigger and Action with your chosen parser and link them together with a Rule.  Update your delivery script with this webhook endpoint.  To create your own parser, review [this API documentation](https://api.qasymphony.com/#/test-log/submitAutomationTestLogs2).  In the next step, you will be delivering the parser results to qTest Manager via a Pulse rule wrapped around this API, and the payload will need to match the expected input for this API.
+Trigger names referenced by source code are contracts and must match exactly.
+Action and Rule display names are descriptive and may be chosen locally.
 
-#### Submission of Parsed Results to qTest Manager
+The maintained results path is:
 
-[This rule](https://github.com/Tricentis/qTest.Integration.Pulse/blob/master/qtest/UpdateQTestWithResults.js) takes the standardized construct created by the parser, then authenticates and submits it to a qTest Manager API, as linked in the section above.  You will require a qTest API Bearer Token in order to authenticate.  For heavily automated workflows, we suggest creating a service account in qTest that has access to all automation projects to allow submission of results to any project with one account.
+```mermaid
+flowchart LR
+    CI["CI job or local runner"] --> D["delivery.js"]
+    D --> PT["Parser webhook Trigger"]
+    PT --> P["Parser Action"]
+    P --> UTE["UpdateQTestWithResults Trigger"]
+    UTE --> UQA["UpdateQTestWithResults Action"]
+    UQA --> QT["qTest automation-log API"]
+    UQA -. optional .-> CQE["CheckProcessingQueue Trigger"]
+    CQE -. optional .-> CQA["CheckProcessingQueue Action"]
+    P -. optional .-> CO["ChatOpsEvent"]
+    UQA -. optional .-> CO
+    CQA -. optional .-> CO
+    CO -. optional .-> ST["Slack and/or Teams Actions"]
+```
+
+`SonarQubeJSON.js` is the one parser exception: SonarQube posts its webhook JSON
+directly to that parser's Trigger, so `delivery.js` is not involved.
+
+## Results Pipeline Quick Start
+
+### 1. Confirm prerequisites
+
+You need:
+
+- access to the qTest Pulse project and permission to create Constants,
+  Triggers, Actions, and Rules;
+- a qTest bearer token with access to the destination project;
+- a qTest Test Cycle or Test Suite that will receive the results;
+- a result format supported by one of the [maintained parsers](parsers/README.md);
+  and
+- Node.js 22 or 24 LTS where `delivery.js` will run. Use a currently supported
+  LTS release as listed by [Node.js](https://nodejs.org/en/about/previous-releases).
+
+Use a dedicated service account and grant only the qTest projects and actions
+the automation requires.
+
+### 2. Create the qTest Constants
+
+Create these Pulse Constants in the destination Pulse project:
+
+| Constant | Value |
+| --- | --- |
+| `ManagerURL` | qTest Manager hostname only, for example `example.qtestnet.com` |
+| `QTEST_TOKEN` | qTest bearer token value without the word `Bearer` |
+
+`ManagerURL` must not contain `http://`, `https://`, a path, query, fragment, or
+trailing slash. The qTest Actions always construct an HTTPS URL.
+
+Queue timeout and polling Constants are optional and documented in the
+[qTest results guide](qtest/README.md).
+
+### 3. Create the qTest submission objects
+
+Create these objects with the exact Trigger names shown:
+
+| Object | Name/source | Required |
+| --- | --- | --- |
+| Trigger | `UpdateQTestWithResults` | Yes |
+| Action | Copy `qtest/UpdateQTestWithResults.js` | Yes |
+| Rule | Connect the Trigger above to the Action above | Yes |
+| Trigger | `CheckProcessingQueue` | Recommended |
+| Action | Copy `qtest/CheckProcessingQueue.js` | Recommended |
+| Rule | Connect the queue Trigger to the queue Action | Recommended |
+
+Queue monitoring deliberately performs one check per Pulse execution. When the
+qTest queue is still processing, the Action emits one bounded follow-up
+`CheckProcessingQueue` event.
+
+### 4. Create one parser Rule
+
+1. Choose the parser matching the actual result-file format.
+2. Create an Action and copy the complete parser source into it.
+3. Create an inbound Trigger for that parser. Its name is your choice because
+   external delivery uses its webhook URL.
+4. Create a Rule connecting the parser Trigger to the parser Action.
+5. Confirm that the same Pulse project contains the exact
+   `UpdateQTestWithResults` Trigger created in the previous step.
+
+Every maintained parser source calls only the unified
+`UpdateQTestWithResults` Trigger. Endpoint selection does not belong in a
+parser.
+
+### 5. Configure delivery
+
+Copy `delivery/node.js/delivery.js` into the CI workspace and edit only its
+configuration block:
+
+- `pulseUri`: webhook URL generated for the parser Trigger;
+- `projectId`: qTest project id;
+- `targetType`: `test-cycle` or `test-suite`;
+- `targetId`: destination id/PID accepted by the corresponding qTest API;
+- `resultsPath`: generated result-file path;
+- `resultFormat`: normally `auto`; and
+- `command`: optional test command to run before delivery.
+
+The script has no npm dependencies. It sends JSON as native JSON and encodes
+XML/TRX from the original file bytes as Base64 so the XML cannot interfere with
+the outer JSON serialization.
+
+See the [delivery guide](delivery/README.md) for the complete contract and
+configuration example.
+
+### 6. Run and verify the complete chain
+
+For the first execution, use a non-production target and confirm all of the
+following:
+
+1. `delivery.js` reports that Pulse accepted the parser webhook and prints the
+   delivery `correlationId`.
+2. The parser execution reports the number of formatted logs and the child
+   Pulse execution id created for `UpdateQTestWithResults`.
+3. The submission Action reports the qTest queue id and selected destination.
+4. Queue monitoring reaches `SUCCESS`, if configured.
+5. The expected test runs and statuses appear under the selected qTest object.
+
+Webhook acceptance, a Pulse child execution id, and a qTest queue id represent
+different stages. A successful delivery response does not prove that qTest
+finished processing the logs. See the [identifier glossary](qtest/README.md#identifier-glossary).
+
+Do not automatically repeat a result submission after a Pulse 502, 503, or 504
+from a downstream invocation. The child Action might have started before the
+gateway response failed. Follow the [reconciliation procedure](docs/PULSE_INVOCATION_RECONCILIATION.md)
+first.
+
+## Delivery Contract
+
+Delivery contract version 2 carries canonical destination fields:
+
+```json
+{
+  "deliverySchemaVersion": 2,
+  "correlationId": "generated-uuid",
+  "projectId": "123",
+  "targetType": "test-suite",
+  "targetId": "TS-456",
+  "testsuite": "TS-456",
+  "resultFormat": "json",
+  "resultEncoding": "identity",
+  "result": {}
+}
+```
+
+The delivery script adds exactly one compatibility destination field:
+
+- `test-cycle` adds `testcycle`;
+- `test-suite` adds `testsuite`.
+
+Do not supply both. JSON results use `resultEncoding: "identity"`; XML and TRX
+use `resultEncoding: "base64"`. Base64 is an encoding mechanism, not encryption
+or an integrity control.
+
+The four delivery-fed JSON parsers also accept the old unversioned Base64 JSON
+envelope during the compatibility period. XML/TRX remains Base64-compatible.
+
+## Other Integration Paths
+
+### CI pipeline triggers
+
+The `citools` directory contains standalone Actions for Bamboo, Jenkins,
+TeamCity, GitHub Actions, GitLab CI/CD, Azure Pipelines, CircleCI, Bitbucket
+Pipelines, and Buildkite. Provider Actions accept correlated event payloads and
+can emit the same optional `ChatOpsEvent` contract. Follow the
+[CI provider guide](citools/README.md); do not infer credentials or parameter
+names from another provider.
+
+### Slack and Microsoft Teams
+
+Slack Workflow Builder and Microsoft Teams Workflows consume the same neutral
+payload:
+
+```json
+{
+  "correlationId": "optional-cross-rule-id",
+  "message": "Human-readable notification"
+}
+```
+
+Connect both provider Actions to `ChatOpsEvent` when intentional fan-out is
+desired. The former Slack attachment rule is retired. See the
+[ChatOps setup guide](chatops/README.md).
+
+### Azure DevOps, Jira, and Scenario
+
+The rules under `qtest/azure-devops`, `qtest/jira`, and `qtest/scenario` are
+older, specialized integrations. Their source headers and directory READMEs
+document their assumptions. They have not yet received all of the validation,
+error-handling, logging, and contract modernization applied to the maintained
+results, ChatOps, and CI paths. Treat them as reference implementations and
+review every mapping before production use.
+
+The maintained `CucumberJSON.js` parser submits through the standard result
+pipeline. It does not automatically perform the historical Scenario
+requirement-linking flow.
+
+## Compatibility Boundaries
+
+- The maintained parser sources are not drop-in replacements for historical
+  Pulse sample Actions with different Trigger and Constant names.
+- qTest Pulse and qTest Launch/Universal Agent integrations may submit through
+  different paths. Do not submit the same result through both paths.
+- Tosca Pulse parsing is separate from native qTest/Tosca and Launch flows.
+- SonarQube sends a direct webhook; all other current result parsers receive a
+  result file through the delivery contract.
+- HTML reports are not accepted as parser input. Generate JSON, XML, or TRX.
+
+## Security and Operations
+
+- Treat Pulse, Slack, Teams, and CI webhook URLs as secrets.
+- Never put tokens in event payloads, query strings, source files, or logs.
+- Hide sensitive Pulse Constant values and rotate them according to the
+  provider's policy.
+- Prefer HTTPS for every external integration and reject unexpected hosts.
+- Keep correlation ids in logs, but do not treat them as authentication or
+  idempotency keys.
+- Start with non-production qTest objects and CI pipelines.
+- Use the narrowest practical service-account permissions.
+- Preserve failed execution logs long enough to reconcile ambiguous calls.
+
+## Repository Status
+
+| Area | Status |
+| --- | --- |
+| Delivery contract v2 | Maintained and contract tested |
+| JSON/XML result parsers | Maintained; representative contract tests plus parser-wide structural checks |
+| Unified qTest submission and queue monitor | Maintained and contract tested |
+| Slack and Teams ChatOps | Maintained and contract tested |
+| CI trigger Actions | Maintained and contract tested; provider smoke tests require local credentials |
+| Azure DevOps qTest synchronization | Legacy; modernization planned last |
+| Jira and Scenario helpers | Legacy/reference |
+
+See the [repository catalog](docs/REPOSITORY_CATALOG.md) for the complete
+inventory.
+
+## Development and Contribution
+
+Use a supported Node.js LTS release, then run:
+
+```shell
+npm ci
+npm run validate
+```
+
+The package manifest is a repository-only validation harness. It does not make
+`delivery.js` install packages at runtime.
+
+Every deployable rule must:
+
+- remain a standalone JavaScript file suitable for copying into one Pulse
+  Action;
+- begin with a usage comment describing its input, Constants, Trigger
+  dependencies, output, and important limitations;
+- validate required configuration before external requests;
+- avoid logging credentials, signed URLs, or complete result documents;
+- await required asynchronous work so Pulse execution status is meaningful;
+- avoid automatic retries for ambiguous non-idempotent operations; and
+- include focused tests or fixtures when its contract changes.
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a change. Contributions
+are licensed under the [MIT License](LICENSE.md) and governed by the
+[Code of Conduct](CODE_OF_CONDUCT.md).

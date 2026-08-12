@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Results>
+  <GeneralInfo>
+    <Timezone>-04:00:00</Timezone>
+  </GeneralInfo>
+  <ReportNode type="testrun">
+    <Data>
+      <Name>UFT checkout flow</Name>
+      <StartTime>2026-08-05 10:15:00</StartTime>
+      <Duration>2.5</Duration>
+      <Result>Warning</Result>
+      <ToolName>UFT One</ToolName>
+      <ToolVersionStringLiteral>24.2</ToolVersionStringLiteral>
+    </Data>
+    <ReportNode type="context">
+      <Data>
+        <Name>Checkout</Name>
+      </Data>
+      <ReportNode type="user">
+        <Data>
+          <Name>Submit order</Name>
+          <Result>Warning</Result>
+          <Description>Order submitted with a warning</Description>
+        </Data>
+      </ReportNode>
+    </ReportNode>
+  </ReportNode>
+</Results>

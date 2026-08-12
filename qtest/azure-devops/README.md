@@ -1,6 +1,14 @@
-# Azure DevOps - qTest synchronization with PULSE rules
+# Azure DevOps and qTest Synchronization
 
-Synchronizes Azure DevOps work items with qTest requirements and defects. In preview for Tricentis qTest customers.
+These legacy reference Actions synchronize selected Azure DevOps work items
+with qTest Requirements and Defects. They predate the validation, correlation
+logging, structured error handling, timeout, and completion standards used by
+the maintained result and CI rules. Modernization is planned after the core
+repository work; review all mappings and test in non-production before use.
+
+`synchronization.json` is a historical import snapshot and is not maintained in
+lockstep with the source files. Configure the three source Actions and their
+Rules individually instead of treating that file as a current release bundle.
 
 ## Features
 
@@ -28,7 +36,10 @@ We recommend removing the following user permissions in qTest to enforce this wo
 
 ### Azure DevOps process models
 
-The Azure DevOps supports different [processes models](https://docs.microsoft.com/en-us/azure/devops/boards/work-items/guidance/choose-process?view=azure-devops-2020&tabs=basic-process). Depending on the process model you might want to map different work item types with qTest requirements and defects.
+Azure DevOps supports different [process
+models](https://learn.microsoft.com/en-us/azure/devops/boards/work-items/guidance/choose-process?view=azure-devops).
+Depending on the process model, map the appropriate work item types to qTest
+Requirements and Defects.
 
 | Process | Requirement          | Defect |
 | ------- | -------------------- | ------ |
@@ -41,13 +52,19 @@ Note: the Basic process template cannot distinguish between requirements and def
 
 ## Setup synchronization
 
-Note: the setup steps and the sample code assume that the Azure DevOps project is set up with the `Scrum` process template. The setup steps can be easily adapted to another template using the appropriate work item type in the hooks. The actions can be also easily adapted using other fields of the work items in the synchronization code (see e.g. the `System.WorkItemType` or the `Microsoft.VSTS.TCM.ReproSteps` field in the actions' source code. See also the overview of [Azure DevOps work items fields](https://docs.microsoft.com/en-us/azure/devops/boards/work-items/guidance/work-item-field?view=azure-devops).
+The current sources assume that the Azure DevOps project uses the `Scrum`
+process template. Other process models require deliberate webhook filters and
+field mappings. See the [Azure DevOps work-item field
+reference](https://learn.microsoft.com/en-us/azure/devops/boards/work-items/guidance/work-item-field?view=azure-devops).
 
 ### Initial steps
 
 <!-- prettier-ignore -->
-1. Import the `synchronization.json` to setup the constants, triggers, actions and rules.
-2. Fill out the [constant](#constants) values.
+1. Review the three Action usage headers and replace customer-specific mapping
+   assumptions where necessary.
+2. Create the Constants documented below.
+3. Create separate Actions from the three maintained source files.
+4. Create the Triggers and Rules described in the webhook sections below.
 
 ### Setup web hooks for requirement synchronization
 
@@ -62,8 +79,10 @@ Create web hooks in Azure DevOps to synchronize Product Backlog Items to qTest R
 ### Setup web hooks for defect synchronization
 
 <!-- prettier-ignore -->
-1. Create a web hook in qTest to synchronize new defects to Azure DevOps Bugs. The web hook can be created using the [qTest API](https://api.qasymphony.com/#/webhook/createWebhook).
-    `POST https://[ManagerURL]/api/v3/webhooks`
+1. Create a webhook in qTest to synchronize new Defects to Azure DevOps Bugs.
+   Consult the [qTest API documentation](https://qtest.dev.tricentis.com/) for
+   the current webhook contract.
+   `POST https://<manager-host>/api/v3/webhooks`
 
     ``` javascript
     {
@@ -138,7 +157,9 @@ The value `false`: if the synchronization should not create a new Requirement wh
 A valid Azure DevOps personal access token with the scope of `Work Items / Read & write`.
 
 Creating Bugs in Azure DevOps for the qTest Defects will be performed on behalf of the user owning the token. It's a good practice to create a "service user" in Azure DevOps for this purpose to separate the changes performed by the synchronization from the changes of normal users.
-Please refer to the [Azure DevOps documentation](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate) about managing your personal access tokens.
+Please refer to the [Azure DevOps PAT
+documentation](https://learn.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops)
+for creation, scope, storage, and rotation guidance.
 
 ### Constant "AzDoProjectURL"
 
@@ -150,15 +171,19 @@ The URL has to have the form `https://dev.azure.com/[YOUR AZDO ORGANIZATION]/[YO
 ### Constant "DefectSummaryFieldID"
 
 The id of the "Summary" field of the Defect in your qTest project to where the work item details of Bugs will be synchronized. To get this value the Field API (/api/v3/projects/{Your Project ID}/settings/defect/fields) needs to be called. 
-FOR EXAMPLE: `http://myqtest.qtestnet.com/api/v3/projects/123456/settings/defects/fields`
+FOR EXAMPLE: `https://myqtest.qtestnet.com/api/v3/projects/123456/settings/defects/fields`
 
 ### Constant "DefectDescriptionFieldID"
 
 The id of the "Description" field of the Defect in your qTest project to where the work item details of Bugs will be synchronized. To get this value the Field API (/api/v3/projects/{Your Project ID}/settings/defect/fields) needs to be called. 
-FOR EXAMPLE: `http://myqtest.qtestnet.com/api/v3/projects/123456/settings/defects/fields`
+FOR EXAMPLE: `https://myqtest.qtestnet.com/api/v3/projects/123456/settings/defects/fields`
 
 ## Limitations
 
 ### Azure DevOps rate limits
 
-The synchronization code calls the Azure DevOps API on behalf of the user owning the ["AZDO_TOKEN"](#constant-azdo_token). The synchronization is event based, hence the frequency of the API calls depends on the usage pattern of the qTest users (e.g. how often a new defect is created in qTest). The synchronization cannot handle blocked or delayed requests due to [rate limits in Azure DevOps](https://docs.microsoft.com/en-us/azure/devops/integrate/concepts/rate-limits)
+The synchronization code calls the Azure DevOps API on behalf of the user
+owning the [`AZDO_TOKEN`](#constant-azdo_token). Request frequency therefore
+depends on webhook activity. The current implementation does not coordinate
+retry or backoff for [Azure DevOps rate
+limits](https://learn.microsoft.com/en-us/azure/devops/integrate/concepts/rate-limits?view=azure-devops).

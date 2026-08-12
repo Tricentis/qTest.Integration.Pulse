@@ -1,3 +1,17 @@
+/**
+ * Pulse usage: Legacy Azure DevOps-to-qTest requirement synchronization
+ * Action. Connect Azure DevOps Service Hooks work-item events to this Action.
+ * Input: Azure DevOps workitem.created, workitem.updated, or workitem.deleted
+ * webhook JSON.
+ * Constants: QTEST_TOKEN, ManagerURL, ProjectID, RequirementParentID,
+ * RequirementDescriptionFieldID, and AllowCreationOnUpdate.
+ * Triggers: None.
+ * Output: Creates, updates, or deletes the qTest requirement identified by its
+ * WI<id>: prefix.
+ * Status: Legacy/reference implementation pending ADO modernization.
+ * See qtest/azure-devops/README.md before deployment.
+ */
+
 const axios = require("axios");
 
 exports.handler = async function ({ event, constants, triggers }, context, callback) {

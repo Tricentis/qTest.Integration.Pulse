@@ -1,6 +1,14 @@
-/*
- * trigger name: UpdateQTestWithResults
- * call source: any and all Result Parser rules via emitEvent()
+/**
+ * Pulse usage: Legacy Scenario-specific qTest submission Action. Connect a
+ * dedicated Scenario result Trigger to this Action only when requirement
+ * linking is required; the maintained parser path uses UpdateQTestWithResults.
+ * Input: Parsed Cucumber { projectId, testcycle, logs } payload.
+ * Constants: QTEST_TOKEN and ManagerURL.
+ * Triggers: LinkScenarioRequirements is required; ChatOpsEvent is optional.
+ * Output: Submits Test Cycle logs, polls qTest, then emits the original payload
+ * for requirement linking. Test Suite delivery is not supported.
+ * Status: Legacy/reference implementation; see qtest/scenario/README.md.
+ * Detailed legacy payload example:
  * payload example:
         {
           "projectId": "5",
@@ -49,7 +57,7 @@
  *  ManagerURL: the base qTest Manager domain with no protocol information, https is expected by the script
         Ex. demo.qtestnet.com
  * outputs: standardized construct to be consumed by the qTest auto-test-logs API
- * external documentation: https://api.qasymphony.com/#/test-log/submitAutomationTestLogs2
+ * external documentation: https://qtest.dev.tricentis.com/
  * Pulse events called: ChatOpsEvent
  */
 

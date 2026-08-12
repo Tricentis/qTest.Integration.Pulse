@@ -1,3 +1,16 @@
+/**
+ * Pulse usage: Legacy Azure DevOps-to-qTest defect update Action. Connect an
+ * Azure DevOps Service Hooks work-item Trigger to this Action.
+ * Input: Azure DevOps workitem.created, workitem.updated, or workitem.deleted
+ * webhook JSON; only updates are synchronized by the current implementation.
+ * Constants: QTEST_TOKEN, ManagerURL, ProjectID, DefectSummaryFieldID, and
+ * DefectDescriptionFieldID.
+ * Triggers: None.
+ * Output: Updates the matching qTest defect identified by its WI<id>: prefix.
+ * Status: Legacy/reference implementation pending ADO modernization.
+ * See qtest/azure-devops/README.md before deployment.
+ */
+
 const axios = require("axios");
 
 // DO NOT EDIT exported "handler" function is the entrypoint

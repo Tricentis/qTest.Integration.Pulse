@@ -1,3 +1,17 @@
+/**
+ * Pulse usage: Legacy qTest-to-Azure DevOps defect synchronization Action.
+ * Connect a qTest defect_submitted webhook Trigger named qTestDefectSubmitted
+ * to this Action. The same Trigger is used for its bounded delayed retry.
+ * Input: qTest webhook event containing defect.id and defect.project_id.
+ * Constants: QTEST_TOKEN, ManagerURL, ProjectID, DefectSummaryFieldID,
+ * DefectDescriptionFieldID, AZDO_TOKEN, and AzDoProjectURL.
+ * Triggers: qTestDefectSubmitted is required for retry; no ChatOps dependency.
+ * Output: Creates an Azure DevOps Bug and prefixes the qTest defect summary
+ * with the created work-item id.
+ * Status: Legacy/reference implementation pending ADO modernization.
+ * See qtest/azure-devops/README.md before deployment.
+ */
+
 const { Webhooks } = require('@qasymphony/pulse-sdk');
 const axios = require('axios');
 

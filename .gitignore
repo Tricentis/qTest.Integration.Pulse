@@ -9,6 +9,7 @@
 
 # Packages #
 ############
+node_modules/
 # it's better to unpack these files and commit the raw source
 # git has its own built in compression methods
 *.7z
@@ -25,6 +26,11 @@
 *.log
 *.sql
 *.sqlite
+coverage/
+
+# Local planning and assessments #
+##################################
+/docs/MODERNIZATION_ASSESSMENT.md
 
 # OS generated files #
 ######################

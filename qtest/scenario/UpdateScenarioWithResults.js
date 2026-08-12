@@ -1,3 +1,15 @@
+/**
+ * Pulse usage: Legacy Scenario BDD step-coloring Action. Connect a
+ * Scenario-results Trigger to this Action when line-level status updates are
+ * required in the Scenario Jira plug-in.
+ * Input: { logs: [{ test_step_logs: [...] }] } with description, status, and
+ * optional keyword/issueId fields on each step.
+ * Constants: QTEST_TOKEN, ScenarioProjectID, and Scenario_URL.
+ * Triggers: None.
+ * Output: Updates matching Scenario steps to PASSED, FAILED, or SKIPPED.
+ * Status: Legacy/reference implementation; see qtest/scenario/README.md.
+ */
+
 const ScenarioSdk = require('@qasymphony/scenario-sdk');
 
 const StepSdk = {

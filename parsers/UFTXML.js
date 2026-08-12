@@ -9,56 +9,161 @@
  *
  * Input event:
  *   {
+ *     deliverySchemaVersion: 2,
+ *     correlationId: "optional-delivery-generated-id",
  *     projectId: "5",
- *     testcycle: "555555",
+ *     testcycle: "555555", // exactly one of testcycle or testsuite
+ *     testsuite: "TS-555555",
  *     result: "base64-encoded UFT XML"
  *   }
  *
+ * Constants: None.
  * Required Pulse trigger: UpdateQTestWithResults
  * Optional Pulse trigger: ChatOpsEvent
- * Optional API submission status trigger: CheckProcessingQueue
  */
+
+const RULE_NAME = "UFTXML";
+const MAX_LOG_VALUE_LENGTH = 500;
 
 // DO NOT EDIT exported "handler" function is the entrypoint
 exports.handler = async function ({ event: body, constants, triggers }, context, callback) {
+    const correlationId = getCorrelationId(body && body.correlationId);
+    const schemaVersion = body && body.deliverySchemaVersion ? body.deliverySchemaVersion : 1;
+    const startedAt = Date.now();
+
     function findTrigger(name) {
         return (triggers || []).find((trigger) => trigger.name === name);
     }
 
-    function emitEvent(name, payload) {
+    async function emitEvent(name, payload, options) {
+        const required = Boolean(options && options.required);
         const trigger = findTrigger(name);
+
         if (!trigger) {
-            console.error(`[ERROR]: (emitEvent) Webhook named '${name}' not found.`);
-            return Promise.resolve();
+            const error = createRuleError("TRIGGER_NOT_FOUND", `Webhook named '${name}' was not found.`);
+            writeLog(required ? "ERROR" : "WARN", error.message, {
+                correlationId: correlationId,
+                stage: "emit",
+                event: name,
+                errorCode: error.code,
+            });
+            if (required) {
+                throw error;
+            }
+            return [];
         }
 
-        const { Webhooks } = require("@qasymphony/pulse-sdk");
-        return new Webhooks().invoke(trigger, payload);
+        writeLog("INFO", "Invoking downstream Pulse event.", {
+            correlationId: correlationId,
+            stage: "emit",
+            event: name,
+            emittedPayloadBytes: getJsonByteLength(payload),
+        });
+
+        try {
+            const { Webhooks } = require("@qasymphony/pulse-sdk");
+            const response = await new Webhooks().invoke(trigger, payload);
+            const executions = normalizePulseExecutions(response);
+
+            if (executions.length === 0) {
+                const unknownError = createUnknownPulseInvocationError(name);
+                if (required) throw unknownError;
+                writeLog("WARN", unknownError.message, Object.assign({
+                    correlationId: correlationId,
+                    stage: "emit",
+                    event: name,
+                }, getPulseInvocationLogFields(unknownError, payload)));
+                return [];
+            }
+
+            executions.forEach((execution) => {
+                writeLog("INFO", "Downstream Pulse execution created.", {
+                    correlationId: correlationId,
+                    stage: "emit",
+                    event: name,
+                    childExecutionId: execution && execution.id,
+                    childExecutionStatus: execution && execution.status,
+                });
+            });
+
+            return executions;
+        } catch (error) {
+            const wrappedError = error && error.code === "CHILD_EXECUTION_STATUS_UNKNOWN"
+                ? error
+                : createPulseInvocationError(name, error);
+            writeLog(required ? "ERROR" : "WARN", wrappedError.message, Object.assign({
+                correlationId: correlationId,
+                stage: "emit",
+                event: name,
+            }, getPulseInvocationLogFields(wrappedError, payload)));
+            if (required) {
+                throw wrappedError;
+            }
+            return [];
+        }
     }
 
     try {
         validatePayload(body);
+        const destination = getSubmissionDestination(body);
 
-        const testResults = Buffer.from(body.result, "base64").toString("utf8");
+        writeLog("INFO", "Starting UFT result parsing.", {
+            correlationId: correlationId,
+            stage: "parse",
+            schemaVersion: schemaVersion,
+            sourceFormat: body.resultFormat || "xml",
+            resultEncoding: body.resultEncoding || "base64",
+            targetType: destination.targetType,
+            targetId: destination.targetId,
+            inputBytes: Buffer.byteLength(body.result, "base64"),
+        });
+
+        const testResults = decodeBase64Xml(body.result);
         const testLogs = await parseUftXml(testResults);
         const formattedResults = {
+            deliverySchemaVersion: schemaVersion,
+            correlationId: correlationId,
             projectId: body.projectId,
-            testcycle: body.testcycle,
+            targetType: destination.targetType,
+            targetId: destination.targetId,
             logs: testLogs,
         };
+        formattedResults[destination.payloadProperty] = destination.targetId;
 
-        if (!findTrigger("UpdateQTestWithResults")) {
-            throw new Error("Required webhook named 'UpdateQTestWithResults' was not found.");
-        }
+        const statusCounts = summarizeStatuses(testLogs);
+        writeLog("INFO", "UFT XML parsed successfully.", {
+            correlationId: correlationId,
+            stage: "parse",
+            parsed: testLogs.length,
+            passed: statusCounts.passed,
+            failed: statusCounts.failed,
+            warning: statusCounts.warning,
+            durationMs: Date.now() - startedAt,
+        });
 
-        console.log(`[INFO]: UFT XML successfully parsed into ${testLogs.length} test log(s).`);
-        await emitEvent("UpdateQTestWithResults", formattedResults);
+        await emitEvent("UpdateQTestWithResults", formattedResults, { required: true });
+        writeLog("INFO", "UFT result processing completed.", {
+            correlationId: correlationId,
+            stage: "complete",
+            targetType: destination.targetType,
+            targetId: destination.targetId,
+            durationMs: Date.now() - startedAt,
+        });
         return formattedResults;
     } catch (error) {
-        console.error(`[ERROR]: Unable to process UFT XML results - ${error.message}`);
+        const errorCode = error && error.code ? error.code : "PARSE_FAILED";
+        writeLog("ERROR", "Unable to process UFT XML results.", Object.assign({
+            correlationId: correlationId,
+            stage: "failed",
+            errorCode: errorCode,
+            durationMs: Date.now() - startedAt,
+        }, getSafeErrorFields(error)));
+
         if (findTrigger("ChatOpsEvent")) {
             await emitEvent("ChatOpsEvent", {
-                message: `[ERROR]: Unable to process UFT XML results - ${error.message}`,
+                correlationId: correlationId,
+                errorCode: errorCode,
+                message: `[ERROR] correlationId=${correlationId} Unable to process UFT XML results: ${error.message}`,
             });
         }
         throw error;
@@ -301,16 +406,216 @@ function asArray(value) {
 
 function validatePayload(payload) {
     if (!payload || typeof payload !== "object") {
-        throw new Error("The Pulse event payload is missing.");
+        throw createRuleError("CONTRACT_INVALID", "The Pulse event payload is missing.");
     }
 
-    ["projectId", "testcycle", "result"].forEach((propertyName) => {
+    ["projectId", "result"].forEach((propertyName) => {
         if (payload[propertyName] === undefined || payload[propertyName] === null || payload[propertyName] === "") {
-            throw new Error(`The Pulse event payload is missing '${propertyName}'.`);
+            throw createRuleError("CONTRACT_INVALID", `The Pulse event payload is missing '${propertyName}'.`);
         }
     });
+
+    if (typeof payload.result !== "string") {
+        throw createRuleError("CONTRACT_INVALID", "The UFT 'result' must be a Base64 string.");
+    }
+    if (payload.resultFormat && String(payload.resultFormat).toLowerCase() !== "xml") {
+        throw createRuleError("CONTRACT_INVALID", "The UFT parser only accepts XML results.");
+    }
+    if (payload.resultEncoding && String(payload.resultEncoding).toLowerCase() !== "base64") {
+        throw createRuleError("CONTRACT_INVALID", "The UFT parser only accepts Base64-encoded XML results.");
+    }
+
+    getSubmissionDestination(payload);
+}
+
+function getSubmissionDestination(payload) {
+    const testCycle = firstPresent(payload && payload.testcycle, payload && payload.test_cycle, payload && payload.testCycle);
+    const testSuite = firstPresent(payload && payload.testsuite, payload && payload.test_suite, payload && payload.testSuite);
+    const hasTestCycle = testCycle !== undefined;
+    const hasTestSuite = testSuite !== undefined;
+
+    if (hasTestCycle === hasTestSuite) {
+        throw createRuleError(
+            "TARGET_INVALID",
+            "The Pulse event payload must provide exactly one of 'testcycle' or 'testsuite'."
+        );
+    }
+
+    const targetType = hasTestSuite ? "test-suite" : "test-cycle";
+    return {
+        targetType: targetType,
+        targetId: hasTestSuite ? testSuite : testCycle,
+        payloadProperty: hasTestSuite ? "testsuite" : "testcycle",
+    };
+}
+
+function firstPresent() {
+    for (let index = 0; index < arguments.length; index += 1) {
+        const value = arguments[index];
+        if (value !== undefined && value !== null && value !== "") {
+            return value;
+        }
+    }
+    return undefined;
+}
+
+function decodeBase64Xml(value) {
+    const normalized = String(value || "").replace(/\s+/g, "");
+
+    if (!normalized || normalized.length % 4 !== 0 || !/^[A-Za-z0-9+/]*={0,2}$/.test(normalized)) {
+        throw createRuleError("DECODE_FAILED", "The UFT result is not valid Base64.");
+    }
+
+    const decoded = Buffer.from(normalized, "base64").toString("utf8");
+    if (!decoded.trim()) {
+        throw createRuleError("DECODE_FAILED", "The decoded UFT XML result is empty.");
+    }
+    return decoded;
+}
+
+function normalizePulseExecutions(response) {
+    if (Array.isArray(response)) {
+        return response;
+    }
+    if (response && Array.isArray(response.data)) {
+        return response.data;
+    }
+    return [];
+}
+
+function summarizeStatuses(testLogs) {
+    return testLogs.reduce(
+        (counts, testLog) => {
+            const status = String(testLog && testLog.status || "").toLowerCase();
+            if (status === "passed") counts.passed += 1;
+            else if (status === "failed") counts.failed += 1;
+            else counts.warning += 1;
+            return counts;
+        },
+        { passed: 0, failed: 0, warning: 0 }
+    );
+}
+
+function getCorrelationId(value) {
+    if (value !== undefined && value !== null && String(value).trim()) {
+        return String(value).trim();
+    }
+    return require("crypto").randomUUID();
+}
+
+function createRuleError(code, message, cause) {
+    const error = new Error(message);
+    error.code = code;
+    if (cause) error.cause = cause;
+    return error;
+}
+
+function createUnknownPulseInvocationError(name) {
+    const error = createRuleError(
+        "CHILD_EXECUTION_STATUS_UNKNOWN",
+        `Pulse returned no execution metadata for downstream event '${name}'. ` +
+            "The child may have been created; reconcile by correlationId before retrying."
+    );
+    error.invocationOutcome = "unknown";
+    error.automaticRetry = "disabled";
+    error.reconciliationRequired = true;
+    return error;
+}
+
+function createPulseInvocationError(name, cause) {
+    const httpStatus = getHttpStatus(cause);
+    const ambiguous = httpStatus >= 500 && httpStatus <= 599;
+    const error = createRuleError(
+        ambiguous ? "CHILD_EXECUTION_STATUS_UNKNOWN" : "CHILD_EXECUTION_FAILED",
+        ambiguous
+            ? `Pulse returned HTTP ${httpStatus} while invoking downstream event '${name}'. ` +
+                "The child may have been created; reconcile by correlationId before retrying."
+            : `Unable to invoke downstream Pulse event '${name}'.`,
+        cause
+    );
+    error.httpStatus = httpStatus;
+    error.invocationOutcome = ambiguous ? "unknown" : "failed";
+    error.automaticRetry = "disabled";
+    error.reconciliationRequired = ambiguous;
+    return error;
+}
+
+function getPulseInvocationLogFields(error, payload) {
+    const cause = error && error.cause;
+    return {
+        errorCode: error && error.code,
+        errorMessage: sanitizeLogText(cause && cause.message ? cause.message : error && error.message),
+        httpStatus: error && error.httpStatus,
+        invocationOutcome: error && error.invocationOutcome,
+        automaticRetry: error && error.automaticRetry,
+        reconciliationRequired: error && error.reconciliationRequired,
+        emittedPayloadBytes: getJsonByteLength(payload),
+    };
+}
+
+function getHttpStatus(error) {
+    const explicitStatus =
+        error && error.response && (error.response.status || error.response.statusCode) ||
+        error && (error.statusCode || error.status);
+    const parsedStatus = Number(explicitStatus);
+    if (Number.isInteger(parsedStatus)) return parsedStatus;
+
+    const match = String(error && error.message || "").match(/\b([45]\d{2})\b/);
+    return match ? Number(match[1]) : undefined;
+}
+
+function getJsonByteLength(value) {
+    try {
+        return Buffer.byteLength(JSON.stringify(value), "utf8");
+    } catch (error) {
+        return undefined;
+    }
+}
+
+function getSafeErrorFields(error) {
+    return {
+        errorCode: error && error.code,
+        errorMessage: sanitizeLogText(error && error.message ? error.message : String(error)),
+        httpStatus: error && error.httpStatus || getHttpStatus(error && error.cause || error),
+        invocationOutcome: error && error.invocationOutcome,
+        automaticRetry: error && error.automaticRetry,
+        reconciliationRequired: error && error.reconciliationRequired,
+    };
+}
+
+function sanitizeLogText(value) {
+    return String(value === undefined || value === null ? "" : value)
+        .replace(/(bearer\s+)[^\s,;"']+/gi, "$1[REDACTED]")
+        .replace(/([?&](?:sig|token|api[_-]?key)=)[^&\s"']+/gi, "$1[REDACTED]")
+        .replace(
+            /\b(authorization|token|api[_-]?key|password|secret|sig)\s*[:=]\s*[^\s,;&"']+/gi,
+            "$1=[REDACTED]"
+        )
+        .slice(0, MAX_LOG_VALUE_LENGTH);
+}
+
+function writeLog(level, message, fields) {
+    const entries = Object.assign({ rule: RULE_NAME }, fields || {});
+    const context = Object.keys(entries)
+        .filter((key) => entries[key] !== undefined && entries[key] !== null && entries[key] !== "")
+        .map((key) => `${key}=${formatLogValue(entries[key])}`)
+        .join(" ");
+    const line = `[${level}] ${context} message=${formatLogValue(message)}`;
+
+    if (level === "ERROR") console.error(line);
+    else if (level === "WARN") console.warn(line);
+    else console.log(line);
+}
+
+function formatLogValue(value) {
+    const rendered = typeof value === "string" ? value : JSON.stringify(value);
+    const limited = sanitizeLogText(rendered);
+    return JSON.stringify(limited);
 }
 
 exports.parseUftXml = parseUftXml;
 exports.mapUftStatus = mapUftStatus;
 exports.parseUftDate = parseUftDate;
+exports.decodeBase64Xml = decodeBase64Xml;
+exports.getSubmissionDestination = getSubmissionDestination;
+exports.normalizePulseExecutions = normalizePulseExecutions;

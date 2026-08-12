@@ -1,14 +1,18 @@
+/**
+ * Pulse usage: Legacy Jira/qTest linking helper. Connect the Trigger named
+ * LinkRequirement to this Action; CreateTestCaseFromJira emits that event.
+ * Input: { tcid: <qTest Test Case id>, issueKey: "PROJECT-123" }.
+ * Constants: QTEST_TOKEN, ManagerURL, and ProjectID.
+ * Triggers: ChatOpsEvent is optional.
+ * Output: Links the Test Case to the Jira-backed qTest Requirement found by
+ * issue key.
+ * Status: Legacy/reference implementation; see qtest/jira/README.md.
+ */
+
 const { Webhooks } = require('@qasymphony/pulse-sdk');
 const request = require('request');
 const xml2js = require('xml2js');
 
-//
-// Expects the payload to look like this
-// {
-//   tcid: 12345,
-//   issueKey: 'AI-123'
-// }
-//
 exports.handler = function ({ event: body, constants, triggers }, context, callback) {
   function emitEvent(name, payload) {
       let t = triggers.find(t => t.name === name);

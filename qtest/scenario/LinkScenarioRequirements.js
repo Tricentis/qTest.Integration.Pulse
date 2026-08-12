@@ -1,3 +1,16 @@
+/**
+ * Pulse usage: Legacy Scenario BDD helper. Connect the Trigger named
+ * LinkScenarioRequirements to this Action after Scenario-specific result
+ * submission completes.
+ * Input: Parsed Cucumber payload containing projectId and logs with feature
+ * names and test-case names.
+ * Constants: QTEST_TOKEN, ManagerURL, ScenarioProjectID, and ScenarioURL.
+ * Triggers: None.
+ * Output: Links matching qTest Test Cases to Jira-backed Requirements resolved
+ * through the Scenario feature API.
+ * Status: Legacy/reference implementation; see qtest/scenario/README.md.
+ */
+
 const request = require('request');
 const { Webhooks } = require('@qasymphony/pulse-sdk');
 const ScenarioSdk = require('@qasymphony/scenario-sdk');

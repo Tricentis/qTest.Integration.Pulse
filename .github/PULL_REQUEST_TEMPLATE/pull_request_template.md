@@ -1,29 +1,54 @@
-<!--- Provide a general summary of your changes in the Title above -->
+## Summary
 
-## Description
-<!--- Describe your changes in detail -->
+<!-- What end-user or maintenance outcome does this change provide? -->
 
-## Motivation and Context
-<!--- Why is this change required? What problem does it solve? -->
-<!--- If it fixes an open issue, please link to the issue here. -->
+## Contract and compatibility impact
 
-## How Has This Been Tested?
-<!--- Please describe in detail how you tested your changes. -->
-<!--- Include details of your testing environment, and the tests you ran to -->
-<!--- see how your change affects other areas of the code, etc. -->
+<!--
+List changes to event payloads, schema versions, Constants, Trigger names,
+provider APIs, return values, error codes, or supported runtimes. State "None"
+when the change is internal/documentation-only.
+-->
 
-## Screenshots (if appropriate):
+## Migration or deployment steps
 
-## Types of changes
-<!--- What types of changes does your code introduce? Put an `x` in all the boxes that apply: -->
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to change)
+<!-- Explain how an existing Pulse project should adopt the change. -->
 
-## Checklist:
-<!--- Go over all the following points, and put an `x` in all the boxes that apply. -->
-<!--- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
-- [ ] My code follows the code style of this project.
-- [ ] My change requires a change to the documentation.
-- [ ] I have updated the documentation accordingly.
-- [ ] I have read the **CONTRIBUTING** document.
+## Validation performed
+
+<!-- Include `npm run validate` and any sanitized live-provider smoke test. -->
+
+- [ ] `npm run validate` passes.
+- [ ] A live provider/qTest smoke test was performed, or the reason it was not
+      required/possible is explained below.
+
+## Security and operational review
+
+- [ ] No credentials, signed URLs, customer data, or private hostnames appear in
+      source, fixtures, screenshots, logs, or commit history.
+- [ ] External requests use bounded timeouts and safe error normalization.
+- [ ] Non-idempotent operations are not automatically retried after an
+      ambiguous response.
+- [ ] Logs include useful correlation/stage context without complete payloads or
+      secret-like fields.
+
+## Documentation checklist
+
+- [ ] Every added or changed rule begins with an accurate usage block.
+- [ ] Required Constants, Trigger wiring, inputs, outputs, and limitations are
+      documented.
+- [ ] The owning directory README and main README are updated when applicable.
+- [ ] External links use authoritative provider documentation.
+- [ ] Breaking/deprecated behavior includes an explicit migration note.
+
+## Change type
+
+- [ ] Bug fix
+- [ ] Compatible enhancement
+- [ ] New integration or parser
+- [ ] Documentation or test maintenance
+- [ ] Breaking change
+
+## Related issue
+
+<!-- Use "Closes #..." when appropriate. -->

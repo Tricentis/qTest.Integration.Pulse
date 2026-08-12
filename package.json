@@ -1,0 +1,15 @@
+{
+  "name": "qtest-integration-pulse-marketplace",
+  "private": true,
+  "version": "3.0.0",
+  "description": "Repository-only validation harness for standalone qTest Pulse marketplace rules.",
+  "scripts": {
+    "check:syntax": "node scripts/check-syntax.js",
+    "check:docs": "node scripts/check-documentation.js",
+    "test": "node --test",
+    "validate": "npm run check:syntax && npm run check:docs && npm test"
+  },
+  "devDependencies": {
+    "xml2js": "^0.6.2"
+  }
+}

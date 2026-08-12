@@ -1,40 +1,70 @@
 ---
-name: Defect or Enhancement Issue
-about: Use this template to open a defect or submit an enhancement request for existing
-  rules.
-title: ''
-labels: ''
-assignees: ''
-
+name: Defect or enhancement
+about: Report a reproducible rule problem or propose a compatible improvement.
+title: ""
+labels: ""
+assignees: ""
 ---
 
-<!--- Provide a general summary of the issue in the Title above -->
+<!--
+Never include API tokens, authorization headers, signed webhook URLs, customer
+result documents, tenant details, or other confidential data. Redact payloads
+and logs before posting them publicly.
+-->
 
-## Expected Behavior
-<!--- If you're describing a bug, tell us what should happen -->
-<!--- If you're suggesting a change/improvement, tell us how it should work -->
+## Area and rule
 
-## Current Behavior
-<!--- If describing a bug, tell us what happens instead of the expected behavior -->
-<!--- If suggesting a change/improvement, explain the difference from current behavior -->
+<!-- Example: parsers/UFTXML.js at commit <sha>. -->
 
-## Possible Solution
-<!--- Not obligatory, but suggest a fix/reason for the bug, -->
-<!--- or ideas how to implement the addition or change -->
+## Expected behavior
 
-## Steps to Reproduce (for bugs)
-<!--- Provide a link to a live example, or an unambiguous set of steps to -->
-<!--- reproduce this bug. Include code to reproduce, if relevant -->
+<!-- What should happen? For an enhancement, describe the intended contract. -->
+
+## Actual behavior
+
+<!-- What happened instead? Include the safe error code and HTTP status. -->
+
+## Steps to reproduce
+
 1.
 2.
 3.
-4.
 
-## Context
-<!--- How has this issue affected you? What are you trying to accomplish? -->
-<!--- Providing context helps us come up with a solution that is most useful in the real world -->
+## Sanitized contract details
 
-## Your Environment
-<!--- Include as many relevant details about the environment you experienced the bug in -->
-* Pulse Version used:
-* Environment (e.g. OP or OD):
+<!--
+Describe payload field names and types. Include a minimal sanitized example only
+when needed. State the Trigger names, Constant names (never values), destination
+type, result format/encoding, provider, and relevant API version.
+-->
+
+## Execution evidence
+
+<!--
+Include safe identifiers when available:
+- correlationId
+- parent and child Pulse execution ids
+- qTest queue id and terminal state
+- concise sanitized stdout/stderr
+
+For an ambiguous Pulse 5xx, say whether the reconciliation procedure was
+completed before retrying.
+-->
+
+## Environment
+
+- qTest/Pulse version:
+- Deployment: SaaS or on-premises
+- Rule source revision:
+- Delivery schema version, if applicable:
+- Test tool/reporter and version, if applicable:
+- Node.js version running `delivery.js`, if applicable:
+- External provider/version, if applicable:
+
+## Local validation
+
+<!-- Paste the summary from `npm run validate`, not confidential test output. -->
+
+## Proposed solution or compatibility impact
+
+<!-- Optional. Identify any Trigger, Constant, payload, API, or migration change. -->

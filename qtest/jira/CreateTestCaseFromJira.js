@@ -1,4 +1,15 @@
-onst { Webhooks } = require('@qasymphony/pulse-sdk');
+/**
+ * Pulse usage: Legacy Jira-to-qTest helper. Connect a filtered Jira issue
+ * webhook Trigger to this Action to create a basic qTest Test Case.
+ * Input: Jira webhook JSON containing issue.key.
+ * Constants: QTEST_TOKEN, ManagerURL, and ProjectID.
+ * Triggers: LinkRequirement is required to complete association;
+ * ChatOpsEvent is optional.
+ * Output: Creates a qTest Test Case and emits its id with the Jira issue key.
+ * Status: Legacy/reference implementation; see qtest/jira/README.md.
+ */
+
+const { Webhooks } = require('@qasymphony/pulse-sdk');
 const request = require('request');
 const xml2js = require('xml2js');
 
