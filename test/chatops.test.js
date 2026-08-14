@@ -95,6 +95,31 @@ test("Slack ChatOps posts the neutral message contract with Axios", { concurrenc
     });
 });
 
+test("Slack ChatOps generates a portable correlation id when one is not supplied", { concurrency: false }, async () => {
+    const harness = createAxiosHarness();
+    await withModuleMocks({ axios: harness.axios }, async () => {
+        const slack = loadFresh(slackPath);
+        const output = await captureConsole(() =>
+            slack.handler(
+                {
+                    event: { message: "qTest queue completed" },
+                    constants: {
+                        SlackWorkflowWebhook: "https://hooks.slack.com/triggers/T000/B000/secret-value",
+                    },
+                    triggers: [],
+                },
+                {},
+                () => {}
+            )
+        );
+
+        assert.match(
+            output.result.correlationId,
+            /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+        );
+    });
+});
+
 test("Slack ChatOps truncates oversized messages without invoking a file API", { concurrency: false }, async () => {
     const harness = createAxiosHarness({ status: 202, responseBody: "accepted" });
     await withModuleMocks({ axios: harness.axios }, async () => {

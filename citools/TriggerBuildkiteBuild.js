@@ -121,7 +121,16 @@ function getSafeErrorFields(error) { const root = error && error.cause ? error.c
     responseSummary: error && error.responseSummary, requestTimeoutMs: error && error.requestTimeoutMs, rootCauseCode: root && root !== error ? root.code : undefined }; }
 function normalizePulseExecutions(response) { if (Array.isArray(response)) return response; if (response && Array.isArray(response.data)) return response.data; return []; }
 function summarizeResponseBody(value) { if (value === undefined || value === null) return ""; try { return sanitizeLogText(typeof value === "string" ? value : JSON.stringify(value)); } catch (error) { return sanitizeLogText(value); } }
-function getCorrelationId(value) { if (value !== undefined && value !== null && String(value).trim()) return String(value).trim(); return require("crypto").randomUUID(); }
+function getCorrelationId(value) {
+    if (value !== undefined && value !== null && String(value).trim()) return String(value).trim();
+    // Pulse QuickJS does not expose Node crypto; this identifier is for correlation, not security.
+    let timestamp = Date.now();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (character) => {
+        const randomNibble = (timestamp + Math.floor(Math.random() * 16)) % 16;
+        timestamp = Math.floor(timestamp / 16);
+        return (character === "x" ? randomNibble : (randomNibble & 3) | 8).toString(16);
+    });
+}
 function getHttpStatus(error) { const status = error && error.response && (error.response.status || error.response.statusCode) || error && error.status; const parsed = Number(status); if (Number.isInteger(parsed)) return parsed;
     const match = String(error && error.message || "").match(/\b([45]\d{2})\b/); return match ? Number(match[1]) : undefined; }
 function getJsonByteLength(value) { try { return Buffer.byteLength(JSON.stringify(value), "utf8"); } catch (error) { return undefined; } }

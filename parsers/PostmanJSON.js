@@ -232,7 +232,13 @@ function normalizePulseExecutions(response) {
 
 function getCorrelationId(value) {
     if (value !== undefined && value !== null && String(value).trim()) return String(value).trim();
-    return require("crypto").randomUUID();
+    // Pulse QuickJS does not expose Node crypto; this identifier is for correlation, not security.
+    let timestamp = Date.now();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (character) => {
+        const randomNibble = (timestamp + Math.floor(Math.random() * 16)) % 16;
+        timestamp = Math.floor(timestamp / 16);
+        return (character === "x" ? randomNibble : (randomNibble & 3) | 8).toString(16);
+    });
 }
 
 function createParserError(code, message, cause) {

@@ -3,6 +3,14 @@
 All notable changes to the qTest Pulse Community Marketplace are documented in
 this file. The project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- Correlation-id fallbacks no longer import Node's unsupported `crypto` module
+  inside Pulse Actions. They now generate non-security UUID-shaped identifiers
+  using only JavaScript APIs exposed by the QuickJS sandbox.
+
 ## [3.0.0] - 2026-08-12
 
 ### Added
